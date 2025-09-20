@@ -34,7 +34,7 @@ int main(void)
 		LCD_ShowPicture(0,0,240,240,gImage_2);
 		delay_xms(1000);
 		LCD_Fill(0,0,LCD_W,LCD_H,WHITE);
-		//LCD_ShowChinese(0,0,"中景园电子",RED,WHITE,32,0);
+		//LCD_ShowChinese(0,0,"abcde",RED,WHITE,12,0);
 		LCD_ShowString(0,40,"LCD_W:",RED,WHITE,16,0);
 		LCD_ShowIntNum(48,40,LCD_W,3,RED,WHITE,16);
 		LCD_ShowString(80,40,"LCD_H:",RED,WHITE,16,0);
