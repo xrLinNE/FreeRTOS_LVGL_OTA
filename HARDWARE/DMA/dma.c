@@ -4,7 +4,7 @@
 DMA_InitTypeDef DMA_InitStructure;
 
 u16 DMA1_MEM_LEN;
-//保存DMA每次数据传送的长度 	    
+//保存DMA每次数据传送的长度
 
 //DMAx的各通道配置
 //这里的传输形式是固定的,这点要根据不同的情况来修改
@@ -86,6 +86,7 @@ void MYDMA_Config1(DMA_Stream_TypeDef *DMA_Streamx,u32 chx,u32 par,u32 mar,u16 n
   DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;//存储器突发单次传输
   DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;//外设突发单次传输
   DMA_Init(DMA_Streamx, &DMA_InitStructure);//初始化DMA Stream
+
 } 
 
 //开启一次DMA传输
@@ -96,21 +97,10 @@ void MYDMA_Enable(DMA_Stream_TypeDef *DMA_Streamx)
  
 	DMA_Cmd(DMA_Streamx, DISABLE);                      //关闭DMA传输 
 	
-	while (DMA_GetCmdStatus(DMA_Streamx) != DISABLE){}	//确保DMA可以被设置  
+	while (DMA_GetCmdStatus(DMA_Streamx) != DISABLE);	//确保DMA可以被设置
 		
 	DMA_SetCurrDataCounter(DMA_Streamx,DMA1_MEM_LEN);  	//数据传输量  
- 
-	DMA_Cmd(DMA_Streamx, ENABLE);                      //开启DMA传输 
+		
+	DMA_Cmd(DMA_Streamx, ENABLE);                       //开启DMA传输 
+	
 }	  
-
- 
-
-
-
-
-
-
-
-
-
-

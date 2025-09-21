@@ -4,6 +4,7 @@
 #include "sys.h"
 
 #define USE_HARDWARE_SPI 1	//硬件SPI
+#define USE_DMA_LCD 		 1	//使用DMA，本代码只有当使用硬件SPI时，才使用DMA，否则报错
 
 #define USE_HORIZONTAL 0  //设置横屏或者竖屏显示 0或1为竖屏 2或3为横屏
 

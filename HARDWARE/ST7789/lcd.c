@@ -2,6 +2,7 @@
 #include "lcd_init.h"
 #include "lcdfont.h"
 #include "delay.h"
+#include "dma.h"
 
 
 /******************************************************************************
@@ -12,7 +13,40 @@
       返回值：  无
 ******************************************************************************/
 void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color)
-{          
+{
+#if USE_DMA_LCD
+	u16 color1[1],t=1;
+	u32 num,num1;
+	color1[0]=color;
+	num=(xend-xsta)*(yend-ysta);
+	LCD_Address_Set(xsta,ysta,xend-1,yend-1);//设置显示范围
+	while(t)
+	{
+		if(num>65534)
+		{
+			num-=65534;
+			num1=65534;
+		}
+		else
+		{
+			t=0;
+			num1=num;
+		}	
+		
+		MYDMA_Config1(DMA1_Stream4,DMA_Channel_0,(u32)&SPI2->DR,(u32)color1,num1);
+		SPI_DataSizeConfig(SPI2, SPI_DataSize_16b);										//设置SPI16位传输模式
+		SPI_I2S_DMACmd(SPI2,SPI_I2S_DMAReq_Tx,ENABLE);								//使能发送缓冲区 DMA
+
+		MYDMA_Enable(DMA1_Stream4);
+		while(DMA_GetFlagStatus(DMA1_Stream4, DMA_FLAG_TCIF4)==RESET);
+		DMA_ClearFlag(DMA1_Stream4, DMA_FLAG_TCIF4);
+
+		while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET);// 	先等待 TXE = 1
+		while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_BSY) == SET);  // 	再等待 BSY = 0
+  }
+	SPI_DataSizeConfig(SPI2, SPI_DataSize_8b);//设置SPI8位传输模式
+	//SPI_Cmd(SPI2, ENABLE);//使能SPI	
+#else
 	u16 i,j; 
 	LCD_Address_Set(xsta,ysta,xend-1,yend-1);//设置显示范围
 	for(i=ysta;i<yend;i++)
@@ -21,7 +55,8 @@ void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color)
 		{
 			LCD_WR_DATA(color);
 		}
-	} 					  	    
+	}
+#endif
 }
 
 /******************************************************************************
@@ -541,6 +576,33 @@ void LCD_ShowFloatNum1(u16 x,u16 y,float num,u8 len,u16 fc,u16 bc,u8 sizey)
 ******************************************************************************/
 void LCD_ShowPicture(u16 x,u16 y,u16 length,u16 width,const u8 pic[])
 {
+#if USE_DMA_LCD
+	u8 t=1;
+	u32 num=length*width*2,num1;
+	LCD_Address_Set(x,y,x+length-1,y+width-1);
+	while(t)
+	{
+	  if(num>65534)
+		{
+			num-=65534;
+			num1=65534;
+		}
+		else
+		{
+			t=0;
+			num1=num;
+		}
+		
+		MYDMA_Config(DMA1_Stream4,DMA_Channel_0,(u32)&SPI2->DR,(u32)pic,num1);
+		SPI_I2S_DMACmd(SPI2,SPI_I2S_DMAReq_Tx,ENABLE);
+		MYDMA_Enable(DMA1_Stream4);
+		while(DMA_GetFlagStatus(DMA1_Stream4,DMA_FLAG_TCIF4)==RESET);	//等待传输完成
+		DMA_ClearFlag(DMA1_Stream4,DMA_FLAG_TCIF4);										//清除传输完成标志
+		while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET);// 	先等待 TXE = 1
+		while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_BSY) == SET);  // 	再等待 BSY = 0
+		pic+=65534;
+	}
+#else
 	u16 i,j;
 	u32 k=0;
 	LCD_Address_Set(x,y,x+length-1,y+width-1);
@@ -552,7 +614,8 @@ void LCD_ShowPicture(u16 x,u16 y,u16 length,u16 width,const u8 pic[])
 			LCD_WR_DATA8(pic[k*2+1]);
 			k++;
 		}
-	}			
+	}
+#endif	
 }
 
 

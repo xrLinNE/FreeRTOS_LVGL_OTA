@@ -52,7 +52,7 @@ void SPI2_Init(void)
 	RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI2, ENABLE);
 	RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI2, DISABLE);
 	
-	SPI_InitStructure.SPI_Direction = SPI_Direction_1Line_Tx;//只发送模式
+	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;//只发送模式
 	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;//设置SPI工作模式：主机模式
 	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;//设置SPI数据大小：8位帧结构
 	SPI_InitStructure.SPI_CPOL = SPI_CPOL_High;//串行同步时钟空闲时SCLK位高电平

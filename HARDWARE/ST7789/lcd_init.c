@@ -1,6 +1,7 @@
 #include "lcd_init.h"
 #include "delay.h"
 #include "spi.h"
+#include "dma.h"
 
 void LCD_GPIO_Init(void)
 {
@@ -27,12 +28,13 @@ void LCD_GPIO_Init(void)
 void LCD_Writ_Bus(u8 dat) 
 {	
 	#if USE_HARDWARE_SPI
-	while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET);//	检查接收标志位
-	SPI_I2S_SendData(SPI2,dat);																		//	发送数据
-	/*** 2025-9-20 ***/
-	SPI_I2S_ReceiveData(SPI2);  																	// 	读掉接收缓冲区，这里F4要读，否则时序混乱！！！！会产生OVR错误，导致下一次写DR失败！！
-	/*** 2025-9-20 ***/
+
+	while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET);
+	SPI_I2S_SendData(SPI2, dat);
+	while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_RXNE) == RESET);
+	SPI2->DR;	// 	读掉接收缓冲区，这里F4要读，否则时序混乱！！！！会产生OVR错误，导致下一次写DR失败！！
 	while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_BSY) == SET);  // 	等待总线空闲
+	
 	#else
 	u8 i;
 	for(i=0;i<8;i++)
@@ -60,7 +62,6 @@ void LCD_Writ_Bus(u8 dat)
 ******************************************************************************/
 void LCD_WR_DATA8(u8 dat)
 {
-	LCD_DC_Set();//写数据
 	LCD_Writ_Bus(dat);
 }
 
@@ -72,7 +73,6 @@ void LCD_WR_DATA8(u8 dat)
 ******************************************************************************/
 void LCD_WR_DATA(u16 dat)
 {
-	LCD_DC_Set();//写数据
 	LCD_Writ_Bus(dat>>8);
 	LCD_Writ_Bus(dat);
 }
@@ -87,6 +87,7 @@ void LCD_WR_REG(u8 dat)
 {
 	LCD_DC_Clr();//写命令
 	LCD_Writ_Bus(dat);
+	LCD_DC_Set();//写命令直接拉起，方便后续的数据写入
 }
 
 
@@ -232,6 +233,7 @@ void LCD_Init(void)
 	LCD_WR_REG(0x21); 
 
 	LCD_WR_REG(0x29); 
+	//屏幕初始化完成
 } 
 
 

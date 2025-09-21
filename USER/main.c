@@ -7,22 +7,25 @@
 #include "timerx.h"
 #include "lcd_init.h"
 #include "lcd.h"
+#include "dma.h"
 #include "pic.h"
 #include "FreeRTOS_task.h"
-
-
+ 
 int main(void)
 { 
- 	u8 i,j;
-	double t=0;
+	u16 i;
+	u8 t=0;
+	u8 j,mask=0;
+
 	
 	delay_init(168);		  //初始化延时函数
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);//设置NVIC中断配置分组，为了适配FreeRTOS中断管理，4bit表示抢占，0bit表示响应
 	LED_Init();		        //初始化LED端口
 	KEY_Init();
-	LCD_Init();
-	LCD_Fill(0,0,LCD_W,LCD_H,WHITE);
 	uart_init(115200);
+	LCD_Init();
+	LCD_Fill(0,0,LCD_W,LCD_H,YELLOW);
+
 	//EXTIX_Init();
 //	TIM3_Int_Init(9999,8399);//1s定时
 //	TIM4_Int_Init(9999,8399);
@@ -30,7 +33,6 @@ int main(void)
 	while(1)
 	{
 		LED1(1);
-		
 		LCD_ShowPicture(0,0,240,240,gImage_2);
 		delay_xms(1000);
 		LCD_Fill(0,0,LCD_W,LCD_H,WHITE);
@@ -53,7 +55,6 @@ int main(void)
 		LED1(0);
 		delay_xms(1000);
 		LCD_Fill(0,0,LCD_W,LCD_H,WHITE);
-
 	}
 }
 
