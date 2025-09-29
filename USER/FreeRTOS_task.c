@@ -57,12 +57,12 @@ void task1( void * pvParameters )
 		key_num = KEY_Scan(0);
 		switch(key_num)
 		{
-			case KEY0_PRES:
+			case KEY1_PRES:
 				buff = pvPortMalloc(100);
 				if(buff != NULL)	printf("Memory application successful! \r\n");
 				else							printf("Memory application failed! \r\n");
 				break;
-			case KEY1_PRES:
+			case KEY2_PRES:
 				if(buff != NULL)
 				{
 					printf("Release memory! \r\n");

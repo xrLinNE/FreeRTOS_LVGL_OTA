@@ -4,21 +4,17 @@
 //按键初始化函数
 void KEY_Init(void)
 {
+	//四个操作按键
 	
 	GPIO_InitTypeDef  GPIO_InitStructure;
 
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);//使能GPIOB时钟
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);//使能GPIOA时钟
  
-  GPIO_InitStructure.GPIO_Pin = KEY0_GPIO_PIN; //KEY0 
+  GPIO_InitStructure.GPIO_Pin = KEY1_GPIO_PIN|KEY2_GPIO_PIN|KEY3_GPIO_PIN|KEY4_GPIO_PIN; //KEY 
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;//普通输入模式
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100M
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
-  GPIO_Init(KEY0_GPIO_PORT, &GPIO_InitStructure);//初始化GPIO
-	
-	GPIO_InitStructure.GPIO_Pin = KEY1_GPIO_PIN; // KEY1 
-	GPIO_Init(KEY1_GPIO_PORT, &GPIO_InitStructure);//初始化GPIO
-	 
-
+  GPIO_Init(KEY1_GPIO_PORT, &GPIO_InitStructure);//初始化GPIO
 } 
 //按键处理函数
 //返回按键值
@@ -35,13 +31,15 @@ u8 KEY_Scan(u8 mode)
 	
 	if(mode) key_up=1;  //支持连按		
   
-	if(key_up && (KEY0==0||KEY1==0))
+	if(key_up && (KEY1==0||KEY2==0))
 	{
 		delay_xms(10);//去抖动 
 		key_up=0;
-		if(KEY0==0)				return 1;
-		else if(KEY1==0)	return 2;
-	}else if(KEY0==1&&KEY1==1)	key_up=1; 	    
+		if(KEY1==0)				return 1;
+		else if(KEY2==0)	return 2;
+		else if(KEY3==0)	return 3;
+		else if(KEY4==0)	return 4;
+	}else if(KEY1==1&&KEY2==1&&KEY3==1&&KEY4==1)	key_up=1; 	    
  	return 0;// 无按键按下
 }
 
