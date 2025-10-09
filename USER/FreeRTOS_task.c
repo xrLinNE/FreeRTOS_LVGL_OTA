@@ -1,24 +1,26 @@
 #include "FreeRTOS_task.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "semphr.h"
-#include "event_groups.h"
-#include "led.h"
-#include "key.h"
-#include "delay.h"
-//动态创建
 
-#define START_TASK_PRIO					1		
-#define TASK1_PRIO							2		
-
-#define START_TASK_STACK_SIZE		128				//这里的单位是字，也就是128字，即128x4=512B 512字节
-#define TASK1_STACK_SIZE				128	
-
+//任务优先级
+#define START_TASK_PRIO									1		
+#define LVGL_TEST_TASK_PRIO							2		
+#define LED_TASK_PRIO										3	
+//任务堆栈
+#define START_TASK_STACK_SIZE						128				//这里的单位是字，也就是128字，即128x4=512B 512字节
+#define LVGL_TEST_TASK_STACK_SIZE				128	
+#define LED_TASK_STACK_SIZE							128	
+//任务句柄
 TaskHandle_t start_task_handler;
-TaskHandle_t task1_handler;
+TaskHandle_t lvgl_test_handler;
+TaskHandle_t led_task_handler;
 
+TimerHandle_t g_Timer_handler;			//时间显示任务句柄
+TimerHandle_t g_Clock_Timer_handler;//闹钟任务句柄
+
+lv_ui guider_ui;//gui_guider.h 中使用到了 extern lv_ui guider_ui;
+//任务函数
 void start_task( void * pvParameters );
-void task1( void * pvParameters );
+void lvgl_test_task( void * pvParameters );
+void led_task( void * pvParameters );
 
 void FreeRTOS_task(void)
 {
@@ -36,47 +38,95 @@ void FreeRTOS_task(void)
 void start_task( void * pvParameters )
 {
 	taskENTER_CRITICAL();               /* 进入临界区 */
+	
+//	g_Timer_handler = xTimerCreate("timer1", 1000, pdTRUE, NULL, (TimerCallbackFunction_t)TimerCallBackFun);//周期定时器
+//	g_Clock_Timer_handler = xTimerCreate("timer2", 100, pdTRUE, NULL, (TimerCallbackFunction_t)ClockTimerCallBackFun);//周期定时器
+	
 	xTaskCreate(
-								 (TaskFunction_t				) 	task1,							
-								 (char *        				)		"task1",						
-								 (configSTACK_DEPTH_TYPE) 	TASK1_STACK_SIZE,	
+								 (TaskFunction_t				) 	lvgl_test_task,							
+								 (char *        				)		"lvgl_test_task",						
+								 (configSTACK_DEPTH_TYPE) 	LVGL_TEST_TASK_STACK_SIZE,	
 								 (void *								)		NULL,										
-								 (UBaseType_t						) 	TASK1_PRIO,				
-								 (TaskHandle_t *				)		&task1_handler			
-						 );								 
+								 (UBaseType_t						) 	LVGL_TEST_TASK_PRIO,				
+								 (TaskHandle_t *				)		&lvgl_test_handler			
+						 );	
+//LED任务表示系统在运行
+	xTaskCreate(
+								 (TaskFunction_t				) 	led_task,							
+								 (char *        				)		"led_task",						
+								 (configSTACK_DEPTH_TYPE) 	LED_TASK_STACK_SIZE,	
+								 (void *								)		NULL,										
+								 (UBaseType_t						) 	LED_TASK_PRIO,				
+								 (TaskHandle_t *				)		&led_task_handler			
+						 );	
 	vTaskDelete(NULL);									//创建完三个任务后，删除自己
 	taskEXIT_CRITICAL();                /* 退出临界区 */
 }
-
-void task1( void * pvParameters )
+static void anim_x_cb(void * var, int32_t v)
 {
-	u8 key_num = 0, t = 0;
-	uint8_t *buff = NULL;
-	while(1)
-	{
-		key_num = KEY_Scan(0);
-		switch(key_num)
-		{
-			case KEY1_PRES:
-				buff = pvPortMalloc(100);
-				if(buff != NULL)	printf("Memory application successful! \r\n");
-				else							printf("Memory application failed! \r\n");
-				break;
-			case KEY2_PRES:
-				if(buff != NULL)
-				{
-					printf("Release memory! \r\n");
-					vPortFree(buff);
-				}
-				break;
-		}
-		if(t++ > 50)
-		{
-			t = 0;
-			printf("The remaining free memory size is: %d \r\n", xPortGetFreeHeapSize());
-		}
-		vTaskDelay(10);
-	}
+    lv_obj_set_x(var, v);
 }
 
+static void anim_size_cb(void * var, int32_t v)
+{
+    lv_obj_set_size(var, v, v);
+}
+
+void lvgl_test_task( void * pvParameters )
+{
+	setup_ui(&guider_ui);//初始化ui
+
+	lv_obj_t * obj = lv_obj_create(lv_scr_act());
+	lv_obj_set_style_bg_color(obj, lv_palette_main(LV_PALETTE_RED), 0);
+	lv_obj_set_style_radius(obj, LV_RADIUS_CIRCLE, 0);
+
+	lv_obj_align(obj, LV_ALIGN_LEFT_MID, 10, 0);
+
+	lv_anim_t a;
+	lv_anim_init(&a);
+	lv_anim_set_var(&a, obj);
+	lv_anim_set_values(&a, 10, 50);
+	lv_anim_set_time(&a, 1000);
+	lv_anim_set_playback_delay(&a, 100);
+	lv_anim_set_playback_time(&a, 300);
+	lv_anim_set_repeat_delay(&a, 500);
+	lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE);
+	lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
+
+	lv_anim_set_exec_cb(&a, anim_size_cb);
+	lv_anim_start(&a);
+	lv_anim_set_exec_cb(&a, anim_x_cb);
+	lv_anim_set_values(&a, 10, 240);
+	lv_anim_start(&a);
+
+//	
+//	// 按钮
+//	lv_obj_t *myBtn = lv_btn_create(lv_scr_act());                               // 创建按钮; 父对象：当前活动屏幕
+//	lv_obj_set_pos(myBtn, 10, 10);                                               // 设置坐标
+//	lv_obj_set_size(myBtn, 120, 50);                                             // 设置大小
+// 
+//	// 按钮上的文本
+//	lv_obj_t *label_btn = lv_label_create(myBtn);                                // 创建文本标签，父对象：上面的btn按钮
+//	lv_obj_align(label_btn, LV_ALIGN_CENTER, 0, 0);                              // 对齐于：父对象
+//	lv_label_set_text(label_btn, "Test");                                        // 设置标签的文本
+
+//	// 独立的标签
+//	lv_obj_t *myLabel = lv_label_create(lv_scr_act());                           // 创建文本标签; 父对象：当前活动屏幕
+//	lv_label_set_text(myLabel, "Hello world!");                                  // 设置标签的文本
+//	lv_obj_align(myLabel, LV_ALIGN_CENTER, 0, 0);                                // 对齐于：父对象
+//	lv_obj_align_to(myBtn, myLabel, LV_ALIGN_OUT_TOP_MID, 0, -20);               // 对齐于：某对象
+	while(1)
+	{
+		lv_timer_handler();
+		vTaskDelay(5);
+	}
+}
+void led_task( void * pvParameters )
+{
+	while(1)
+	{
+		LED0_TOGGLE();
+		vTaskDelay(1000);
+	}
+}
 

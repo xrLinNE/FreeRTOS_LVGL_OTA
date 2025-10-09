@@ -3,8 +3,7 @@
 #include "lcdfont.h"
 #include "delay.h"
 #include "dma.h"
-
-
+//16-bit/pixel: RGB=(565)
 /******************************************************************************
       函数说明：在指定区域填充颜色
       入口数据：xsta,ysta   起始坐标
@@ -12,16 +11,22 @@
 								color       要填充的颜色
       返回值：  无
 ******************************************************************************/
+//若使用这个函数需要设置内存地址不递增
 void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color)
 {
 #if USE_DMA_LCD
+	
+	uint16_t w = xend-xsta+1;
+	uint16_t h = yend-ysta+1;
+	uint32_t draw_size = w * h;
 	u16 color1[1],t=1;
 	u32 num,num1;
 	color1[0]=color;
-	num=(xend-xsta)*(yend-ysta);
-	LCD_Address_Set(xsta,ysta,xend-1,yend-1);//设置显示范围
+	num=draw_size;
+	LCD_Address_Set(xsta,ysta,xend,yend);//设置显示范围
 	while(t)
 	{
+		//DMA一次传输字数有限制，分批次发送
 		if(num>65534)
 		{
 			num-=65534;
@@ -33,7 +38,7 @@ void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color)
 			num1=num;
 		}	
 		
-		MYDMA_Config1(DMA1_Stream4,DMA_Channel_0,(u32)&SPI2->DR,(u32)color1,num1);
+		MYDMA_Config1(DMA1_Stream4,DMA_Channel_0,(u32)&SPI2->DR,(u32)color1,num1,0);//内存地址不递增
 		SPI_DataSizeConfig(SPI2, SPI_DataSize_16b);										//设置SPI16位传输模式
 		SPI_I2S_DMACmd(SPI2,SPI_I2S_DMAReq_Tx,ENABLE);								//使能发送缓冲区 DMA
 
@@ -58,6 +63,56 @@ void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color)
 	}
 #endif
 }
+//按区域填充不同颜色数据，颜色数组指针
+//若使用这个函数需要设置DMA_MemoryInc_Enable，内存地址递增
+void LCD_Fill_Color(u16 xsta, u16 ysta, u16 xend, u16 yend, u16 *color)
+{
+#if USE_DMA_LCD
+		uint16_t w = xend-xsta+1;
+    uint16_t h = yend-ysta+1;
+		uint32_t draw_size = w * h;
+    uint32_t num_left = draw_size;
+    u32 offset = 0;
+    u16 batch_size;
+    LCD_Address_Set(xsta, ysta, xend, yend ); // 设置显示区域
+    while (num_left > 0)
+    {
+        if (num_left > 65534)
+            batch_size = 65534;
+        else
+            batch_size = num_left;
+
+        MYDMA_Config1(DMA1_Stream4, DMA_Channel_0, (u32)&SPI2->DR, (u32)&color[offset], batch_size,1);//内存地址递增
+        SPI_DataSizeConfig(SPI2, SPI_DataSize_16b);  // SPI 16位模式
+        SPI_I2S_DMACmd(SPI2, SPI_I2S_DMAReq_Tx, ENABLE);
+        MYDMA_Enable(DMA1_Stream4);
+
+        while (DMA_GetFlagStatus(DMA1_Stream4, DMA_FLAG_TCIF4) == RESET);
+        DMA_ClearFlag(DMA1_Stream4, DMA_FLAG_TCIF4);
+
+        offset += batch_size;
+        num_left -= batch_size;
+    }
+
+    while (SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET);
+    while (SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_BSY) == SET);
+
+    SPI_DataSizeConfig(SPI2, SPI_DataSize_8b); // 恢复8位模式
+
+#else
+    u16 i, j;
+    u32 k = 0;
+    LCD_Address_Set(xsta, ysta, xend - 1, yend - 1);
+    for (i = ysta; i < yend; i++)
+    {
+        for (j = xsta; j < xend; j++)
+        {
+            LCD_WR_DATA(color[k++]);
+        }
+    }
+#endif
+}
+
 
 /******************************************************************************
       函数说明：在指定位置画点

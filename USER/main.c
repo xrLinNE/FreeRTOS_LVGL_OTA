@@ -10,6 +10,8 @@
 #include "dma.h"
 #include "pic.h"
 #include "FreeRTOS_task.h"
+
+
  
 int main(void)
 { 
@@ -21,13 +23,14 @@ int main(void)
 	LED_Init();		        //初始化LED端口
 	EXTIX_Init();					//按键和外部中断初始化
 	uart_init(115200);
+	//LCD
 	LCD_Init();
 	LCD_Fill(0,0,LCD_W,LCD_H,YELLOW);
-
-
-//	TIM3_Int_Init(9999,8399);//1s定时
-//	TIM4_Int_Init(9999,8399);
-//	FreeRTOS_task();
+	//LVGL
+	lv_init();                             // LVGL 初始化
+	lv_port_disp_init();                   // 注册LVGL的显示任务
+	//创建各个任务并开启任务调度
+	FreeRTOS_task();
 	while(1)
 	{
 		LED1(1);

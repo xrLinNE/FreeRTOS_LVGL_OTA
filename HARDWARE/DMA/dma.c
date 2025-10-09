@@ -50,8 +50,8 @@ void MYDMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u32 chx,u32 par,u32 mar,u16 nd
   DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;//外设突发单次传输
   DMA_Init(DMA_Streamx, &DMA_InitStructure);//初始化DMA Stream
 } 
-
-void MYDMA_Config1(DMA_Stream_TypeDef *DMA_Streamx,u32 chx,u32 par,u32 mar,u16 ndtr)
+//mem_inc_enable 内存是否递增选项   1:递增 0:不递增
+void MYDMA_Config1(DMA_Stream_TypeDef *DMA_Streamx,u32 chx,u32 par,u32 mar,u16 ndtr,u8 mem_inc_enable)
 { 
  
 	DMA_InitTypeDef  DMA_InitStructure;
@@ -76,7 +76,7 @@ void MYDMA_Config1(DMA_Stream_TypeDef *DMA_Streamx,u32 chx,u32 par,u32 mar,u16 n
   DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;//存储器到外设模式
   DMA_InitStructure.DMA_BufferSize = ndtr;//数据传输量 
   DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;//外设非增量模式
-  DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Disable;//存储器地址不递增
+  DMA_InitStructure.DMA_MemoryInc = ((mem_inc_enable) ? DMA_MemoryInc_Enable : DMA_MemoryInc_Disable);//存储器地址是否递增
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;//外设数据长度:16位
   DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;//存储器数据长度:16位
   DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;// 使用普通模式 
