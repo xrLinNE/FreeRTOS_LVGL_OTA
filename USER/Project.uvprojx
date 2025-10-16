@@ -338,9 +338,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>STM32F40_41xxx,USE_STDPERIPH_DRIVER</Define>
+              <Define>STM32F40_41xxx,USE_STDPERIPH_DRIVER,LV_LVGL_H_INCLUDE_SIMPLE</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\USER;..\HARDWARE\LED;..\FWLIB\inc;..\FreeRTOS\include;..\FreeRTOS\portable\RVDS\ARM_CM4F;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\TIMER;..\HARDWARE\ST7789;..\HARDWARE\DMA;..\HARDWARE\SPI;..\TASK;..\SoftWare\LVGL_8.3;..\SoftWare\LVGL_8.3\src;..\SoftWare\LVGL_8.3\examples\porting;..\SoftWare\GUI_Guider;..\SoftWare\GUI_Guider\custom;..\SoftWare\GUI_Guider\guider_customer_fonts;..\SoftWare\GUI_Guider\guider_fonts;..\SoftWare\GUI_Guider\images</IncludePath>
+              <IncludePath>..\CORE;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\USER;..\HARDWARE\LED;..\FWLIB\inc;..\FreeRTOS\include;..\FreeRTOS\portable\RVDS\ARM_CM4F;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\TIMER;..\HARDWARE\ST7789;..\HARDWARE\DMA;..\HARDWARE\SPI;..\TASK;..\SoftWare\LVGL_8.3;..\SoftWare\LVGL_8.3\src;..\SoftWare\LVGL_8.3\examples\porting;..\SoftWare\GUI_Guider;..\SoftWare\GUI_Guider\custom;..\SoftWare\GUI_Guider\guider_customer_fonts;..\SoftWare\GUI_Guider\guider_fonts;..\SoftWare\GUI_Guider\images;..\SoftWare\GUI_Guider\myFont</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -443,6 +443,13 @@
         </Group>
         <Group>
           <GroupName>TASK</GroupName>
+          <Files>
+            <File>
+              <FileName>MenuTask.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\MenuTask.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>FWLIB</GroupName>
@@ -593,69 +600,34 @@
           <GroupName>LVGL/myGUI</GroupName>
           <Files>
             <File>
-              <FileName>events_init.c</FileName>
+              <FileName>icon_calendar_64.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\events_init.c</FilePath>
+              <FilePath>..\SoftWare\GUI_Guider\myPic\icon_calendar_64.c</FilePath>
             </File>
             <File>
-              <FileName>gui_guider.c</FileName>
+              <FileName>icon_clock_64.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\gui_guider.c</FilePath>
+              <FilePath>..\SoftWare\GUI_Guider\myPic\icon_clock_64.c</FilePath>
             </File>
             <File>
-              <FileName>setup_scr_screen.c</FileName>
+              <FileName>icon_flashlight_64.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\setup_scr_screen.c</FilePath>
+              <FilePath>..\SoftWare\GUI_Guider\myPic\icon_flashlight_64.c</FilePath>
             </File>
             <File>
-              <FileName>widgets_init.c</FileName>
+              <FileName>icon_settings_64.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\widgets_init.c</FilePath>
+              <FilePath>..\SoftWare\GUI_Guider\myPic\icon_settings_64.c</FilePath>
             </File>
             <File>
-              <FileName>custom.c</FileName>
+              <FileName>icon_thermometer_64.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\custom\custom.c</FilePath>
+              <FilePath>..\SoftWare\GUI_Guider\myPic\icon_thermometer_64.c</FilePath>
             </File>
             <File>
-              <FileName>lv_font_arial_23.c</FileName>
+              <FileName>menu_label_font_20px.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\guider_fonts\lv_font_arial_23.c</FilePath>
-            </File>
-            <File>
-              <FileName>lv_font_montserratMedium_12.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\guider_fonts\lv_font_montserratMedium_12.c</FilePath>
-            </File>
-            <File>
-              <FileName>lv_font_montserratMedium_14.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\guider_fonts\lv_font_montserratMedium_14.c</FilePath>
-            </File>
-            <File>
-              <FileName>lv_font_montserratMedium_16.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\guider_fonts\lv_font_montserratMedium_16.c</FilePath>
-            </File>
-            <File>
-              <FileName>lv_font_SourceHanSerifSC_Regular_12.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\guider_fonts\lv_font_SourceHanSerifSC_Regular_12.c</FilePath>
-            </File>
-            <File>
-              <FileName>lv_font_SourceHanSerifSC_Regular_14.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\guider_fonts\lv_font_SourceHanSerifSC_Regular_14.c</FilePath>
-            </File>
-            <File>
-              <FileName>lv_font_SourceHanSerifSC_Regular_18.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\guider_fonts\lv_font_SourceHanSerifSC_Regular_18.c</FilePath>
-            </File>
-            <File>
-              <FileName>_hjm_alpha_144x112.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\images\_hjm_alpha_144x112.c</FilePath>
+              <FilePath>..\SoftWare\GUI_Guider\myFont\menu_label_font_20px.c</FilePath>
             </File>
           </Files>
         </Group>

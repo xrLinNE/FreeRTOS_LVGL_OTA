@@ -26,7 +26,15 @@
 #define KEY3_PRES 	3
 #define KEY4_PRES		4
 
+//按键数据结构
+typedef struct Key_data{
+	uint8_t rdata;
+	uint8_t ldata;
+	uint8_t updata;
+	uint8_t exdata;
+}Key_data;
 
+//函数
 void KEY_Init(void);	//IO初始化
 u8 KEY_Scan(u8);  		//按键扫描函数	
 

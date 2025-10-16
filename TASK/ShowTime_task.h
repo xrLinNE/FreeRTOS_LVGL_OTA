@@ -7,8 +7,7 @@
 #include "event_groups.h"
 #include "queue.h"
 #include "semphr.h"
-#include "u8g2.h"
-#include "Data.h"
+#include "key.h"
 //º¯Êý
 void ShowTimeTask(void *params);
 void TimerCallBackFun(TimerHandle_t xTimer);

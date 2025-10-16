@@ -4,23 +4,29 @@
 #define START_TASK_PRIO									1		
 #define LVGL_TEST_TASK_PRIO							2		
 #define LED_TASK_PRIO										3	
+#define MENU_TASK_PRIO									3	
 //任务堆栈
 #define START_TASK_STACK_SIZE						128				//这里的单位是字，也就是128字，即128x4=512B 512字节
 #define LVGL_TEST_TASK_STACK_SIZE				128	
 #define LED_TASK_STACK_SIZE							128	
+#define MENU_TASK_STACK_SIZE						256	
 //任务句柄
-TaskHandle_t start_task_handler;
-TaskHandle_t lvgl_test_handler;
-TaskHandle_t led_task_handler;
+TaskHandle_t 	start_task_handler;
+TaskHandle_t 	lvgl_test_handler;
+TaskHandle_t 	led_task_handler;
 
+TaskHandle_t 	MenuTask_handler;
 TimerHandle_t g_Timer_handler;			//时间显示任务句柄
 TimerHandle_t g_Clock_Timer_handler;//闹钟任务句柄
-
-lv_ui guider_ui;//gui_guider.h 中使用到了 extern lv_ui guider_ui;
+//变量
+//lv_ui 				guider_ui;//gui_guider.h 中使用到了 extern lv_ui guider_ui;
+//队列
+QueueHandle_t g_xQueueMenu;						//传递按键数据	
 //任务函数
 void start_task( void * pvParameters );
 void lvgl_test_task( void * pvParameters );
 void led_task( void * pvParameters );
+extern void MenuTask(void *params);
 
 void FreeRTOS_task(void)
 {
@@ -41,7 +47,8 @@ void start_task( void * pvParameters )
 	
 //	g_Timer_handler = xTimerCreate("timer1", 1000, pdTRUE, NULL, (TimerCallbackFunction_t)TimerCallBackFun);//周期定时器
 //	g_Clock_Timer_handler = xTimerCreate("timer2", 100, pdTRUE, NULL, (TimerCallbackFunction_t)ClockTimerCallBackFun);//周期定时器
-	
+
+//LVGL绘制任务
 	xTaskCreate(
 								 (TaskFunction_t				) 	lvgl_test_task,							
 								 (char *        				)		"lvgl_test_task",						
@@ -49,6 +56,15 @@ void start_task( void * pvParameters )
 								 (void *								)		NULL,										
 								 (UBaseType_t						) 	LVGL_TEST_TASK_PRIO,				
 								 (TaskHandle_t *				)		&lvgl_test_handler			
+						 );	
+//菜单任务								 
+	xTaskCreate(
+								 (TaskFunction_t				) 	MenuTask,							
+								 (char *        				)		"MenuTask",						
+								 (configSTACK_DEPTH_TYPE) 	MENU_TASK_STACK_SIZE,	
+								 (void *								)		NULL,										
+								 (UBaseType_t						) 	MENU_TASK_PRIO,				
+								 (TaskHandle_t *				)		&MenuTask_handler			
 						 );	
 //LED任务表示系统在运行
 	xTaskCreate(
@@ -71,50 +87,47 @@ static void anim_size_cb(void * var, int32_t v)
 {
     lv_obj_set_size(var, v, v);
 }
+static void set_angle(void * img, int32_t v)
+{
+    lv_img_set_angle(img, v);
+}
 
+static void set_zoom(void * img, int32_t v)
+{
+    lv_img_set_zoom(img, v);
+	
+}
+void lv_example(void)
+{
+    lv_obj_t * obj = lv_obj_create(lv_scr_act());
+    lv_obj_set_style_bg_color(obj, lv_palette_main(LV_PALETTE_RED), 0);
+    lv_obj_set_style_radius(obj, LV_RADIUS_CIRCLE, 0);
+
+    lv_obj_align(obj, LV_ALIGN_LEFT_MID, 10, 0);
+
+    lv_anim_t a;
+    lv_anim_init(&a);
+    lv_anim_set_var(&a, obj);
+    lv_anim_set_values(&a, 10, 50);
+    lv_anim_set_time(&a, 1000);
+    lv_anim_set_playback_delay(&a, 100);
+    lv_anim_set_playback_time(&a, 300);
+    lv_anim_set_repeat_delay(&a, 500);
+    lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
+
+    lv_anim_set_exec_cb(&a, anim_size_cb);
+    lv_anim_start(&a);
+    lv_anim_set_exec_cb(&a, anim_x_cb);
+    lv_anim_set_values(&a, 10, 240);
+    lv_anim_start(&a);
+
+}
 void lvgl_test_task( void * pvParameters )
 {
-	setup_ui(&guider_ui);//初始化ui
+	//setup_ui(&guider_ui);//初始化ui
 
-	lv_obj_t * obj = lv_obj_create(lv_scr_act());
-	lv_obj_set_style_bg_color(obj, lv_palette_main(LV_PALETTE_RED), 0);
-	lv_obj_set_style_radius(obj, LV_RADIUS_CIRCLE, 0);
-
-	lv_obj_align(obj, LV_ALIGN_LEFT_MID, 10, 0);
-
-	lv_anim_t a;
-	lv_anim_init(&a);
-	lv_anim_set_var(&a, obj);
-	lv_anim_set_values(&a, 10, 50);
-	lv_anim_set_time(&a, 1000);
-	lv_anim_set_playback_delay(&a, 100);
-	lv_anim_set_playback_time(&a, 300);
-	lv_anim_set_repeat_delay(&a, 500);
-	lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE);
-	lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
-
-	lv_anim_set_exec_cb(&a, anim_size_cb);
-	lv_anim_start(&a);
-	lv_anim_set_exec_cb(&a, anim_x_cb);
-	lv_anim_set_values(&a, 10, 240);
-	lv_anim_start(&a);
-
-//	
-//	// 按钮
-//	lv_obj_t *myBtn = lv_btn_create(lv_scr_act());                               // 创建按钮; 父对象：当前活动屏幕
-//	lv_obj_set_pos(myBtn, 10, 10);                                               // 设置坐标
-//	lv_obj_set_size(myBtn, 120, 50);                                             // 设置大小
-// 
-//	// 按钮上的文本
-//	lv_obj_t *label_btn = lv_label_create(myBtn);                                // 创建文本标签，父对象：上面的btn按钮
-//	lv_obj_align(label_btn, LV_ALIGN_CENTER, 0, 0);                              // 对齐于：父对象
-//	lv_label_set_text(label_btn, "Test");                                        // 设置标签的文本
-
-//	// 独立的标签
-//	lv_obj_t *myLabel = lv_label_create(lv_scr_act());                           // 创建文本标签; 父对象：当前活动屏幕
-//	lv_label_set_text(myLabel, "Hello world!");                                  // 设置标签的文本
-//	lv_obj_align(myLabel, LV_ALIGN_CENTER, 0, 0);                                // 对齐于：父对象
-//	lv_obj_align_to(myBtn, myLabel, LV_ALIGN_OUT_TOP_MID, 0, -20);               // 对齐于：某对象
+	//lv_example();
 	while(1)
 	{
 		lv_timer_handler();

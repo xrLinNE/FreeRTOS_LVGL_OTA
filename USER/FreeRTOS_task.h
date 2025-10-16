@@ -14,8 +14,7 @@
 //GUI Guider
 #include "gui_guider.h"        	 // 使用GUI Guider绘制的图像
 //任务头文件
-#include "ShowTime_task.h"
-#include "ShowClock_task.h"
+#include "MenuTask.h"
 //函数
 void FreeRTOS_task(void);
 

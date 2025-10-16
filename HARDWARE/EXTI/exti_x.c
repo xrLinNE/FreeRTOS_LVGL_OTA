@@ -3,7 +3,12 @@
 #include "led.h" 
 #include "key.h"
 #include "FreeRTOS.h"
+#include "FreeRTOS_task.h"
 #include "task.h"
+
+//extern 	BaseType_t end_flag;
+//extern	BaseType_t seclect_end;
+extern	QueueHandle_t g_xQueueMenu;	
 
 //外部中断初始化程序
 void EXTIX_Init(void)
@@ -56,12 +61,21 @@ void EXTIX_Init(void)
 //KEY1中断
 void EXTI1_IRQHandler(void)
 {
+	BaseType_t  RM_Flag;
+	Key_data 		key_data;
 	if(EXTI_GetITStatus(EXTI_Line1) != RESET)//判断，否则会进入两次中断
 	{
 		delay_xms(10);	//消抖，注意不能调用系统提供的vTaskDelay，否则会卡死
 		if(KEY1 == 0)	  
 		{	
-			LED0_TOGGLE();			 
+//			if(end_flag == 1&&seclect_end == 0)
+//			{
+				RM_Flag = 1;
+				key_data.ldata = RM_Flag;
+				xQueueSendToBackFromISR(g_xQueueMenu, &key_data, NULL);
+				RM_Flag = 0;			
+//			}
+			LED1_TOGGLE();			 
 			printf("key1 it test..\r\n");
 		}		 
 		EXTI_ClearITPendingBit(EXTI_Line1);//清除LINE上的中断标志位 
@@ -70,12 +84,21 @@ void EXTI1_IRQHandler(void)
 //KEY2中断
 void EXTI2_IRQHandler(void)
 {
+	BaseType_t  LM_Flag;
+	Key_data 		key_data;
 	if(EXTI_GetITStatus(EXTI_Line2) != RESET)
 	{
 		delay_xms(10);	//消抖，注意不能调用系统提供的vTaskDelay，否则会卡死
 		if(KEY2 == 0)	  
-		{			
-			LED0_TOGGLE();			
+		{
+//			if(end_flag == 1&&seclect_end == 0)
+//			{
+				LM_Flag = 1;
+				key_data.rdata = LM_Flag;
+				xQueueSendToBackFromISR(g_xQueueMenu, &key_data, NULL);
+				LM_Flag = 0;			
+//			}			
+			LED1_TOGGLE();			
 			printf("key2 it test..\r\n");
 		}		
 		EXTI_ClearITPendingBit(EXTI_Line2);//清除LINE上的中断标志位 
@@ -84,12 +107,21 @@ void EXTI2_IRQHandler(void)
 //KEY3中断
 void EXTI3_IRQHandler(void)
 {
+	BaseType_t  EN_Flag;
+	Key_data 		key_data;
 	if(EXTI_GetITStatus(EXTI_Line3) != RESET)
 	{
 		delay_xms(10);	//消抖，注意不能调用系统提供的vTaskDelay，否则会卡死
 		if(KEY3 == 0)	  
-		{				 
-			LED0_TOGGLE();	
+		{
+//			if(end_flag == 1&&seclect_end == 0)
+//			{
+				EN_Flag = 1;
+				key_data.updata = EN_Flag;
+				xQueueSendToBackFromISR(g_xQueueMenu, &key_data, NULL);
+				EN_Flag = 0;			
+//			}			
+			LED1_TOGGLE();	
 			printf("key3 it test..\r\n");
 		}		 
 		EXTI_ClearITPendingBit(EXTI_Line3);//清除LINE上的中断标志位 
@@ -98,12 +130,21 @@ void EXTI3_IRQHandler(void)
 //KEY4中断
 void EXTI4_IRQHandler(void)
 {
+	BaseType_t  EX_Flag;
+	Key_data 		key_data;
 	if(EXTI_GetITStatus(EXTI_Line4) != RESET)
 	{
 		delay_xms(10);	//消抖，注意不能调用系统提供的vTaskDelay，否则会卡死
 		if(KEY4 == 0)	  
-		{				
-			LED0_TOGGLE();			
+		{
+//			if(end_flag == 1&&seclect_end == 0)
+//			{
+				EX_Flag = 1;
+				key_data.exdata = EX_Flag;
+				xQueueSendToBackFromISR(g_xQueueMenu, &key_data, NULL);
+				EX_Flag = 0;			
+//			}			
+			LED1_TOGGLE();			
 			printf("key4 it test..\r\n");
 		}		 
 		EXTI_ClearITPendingBit(EXTI_Line4);//清除LINE上的中断标志位 

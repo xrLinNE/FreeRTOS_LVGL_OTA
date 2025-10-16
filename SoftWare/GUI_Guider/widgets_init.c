@@ -77,3 +77,12 @@ void clock_count(int *hour, int *min, int *sec)
 #endif
 
 
+const lv_img_dsc_t * screen_animimg_1_imgs[7] = {
+    &screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_10,
+    &screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_12,
+    &screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_13,
+    &screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_23,
+    &screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_24,
+    &screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_26,
+    &screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_27,
+};

@@ -25,8 +25,8 @@ typedef struct
 	lv_obj_t *screen_btn_2;
 	lv_obj_t *screen_btn_2_label;
 	lv_obj_t *screen_label_1;
-	lv_obj_t *screen_ta_1;
 	lv_obj_t *screen_img_1;
+	lv_obj_t *screen_animimg_1;
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);
@@ -52,10 +52,17 @@ extern lv_ui guider_ui;
 
 void setup_scr_screen(lv_ui *ui);
 LV_IMG_DECLARE(_hjm_alpha_144x112);
+#include "extra/widgets/animimg/lv_animimg.h"
+LV_IMG_DECLARE(screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_10);
+LV_IMG_DECLARE(screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_12);
+LV_IMG_DECLARE(screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_13);
+LV_IMG_DECLARE(screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_23);
+LV_IMG_DECLARE(screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_24);
+LV_IMG_DECLARE(screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_26);
+LV_IMG_DECLARE(screen_animimg_1o4aEiUrBGOxGMugQAAAjyveslZBLI6IRAI2Qee_27);
 
 LV_FONT_DECLARE(lv_font_montserratMedium_16)
 LV_FONT_DECLARE(lv_font_arial_23)
-LV_FONT_DECLARE(lv_font_SourceHanSerifSC_Regular_18)
 
 
 #ifdef __cplusplus

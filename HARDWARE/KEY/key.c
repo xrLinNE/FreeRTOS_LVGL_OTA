@@ -1,3 +1,4 @@
+#include <stm32f4xx.h>
 #include "key.h"
 #include "delay.h" 
 
@@ -42,23 +43,4 @@ u8 KEY_Scan(u8 mode)
 	}else if(KEY1==1&&KEY2==1&&KEY3==1&&KEY4==1)	key_up=1; 	    
  	return 0;// 无按键按下
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
