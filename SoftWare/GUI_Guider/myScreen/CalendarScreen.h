@@ -1,5 +1,5 @@
-#ifndef __MENUTASK_H__
-#define __MENUTASK_H__
+#ifndef __CALENDARCREEN_H__
+#define __CALENDARCREEN_H__
 //头文件
 #include "FreeRTOS.h"
 #include "task.h"
@@ -7,14 +7,13 @@
 #include "semphr.h"
 #include "queue.h"
 #include "key.h"
+#include "lcd.h"
+#include "lcd_init.h"
 //LVGL
 #include "lvgl.h"                
 #include "lv_port_disp.h"        // 支持LVGL显示
-//屏幕
-#include "MenuScreen.h"
-#include "TimeScreen.h"
-#include "CalendarScreen.h"
 //函数
-void MenuTask(void *params);
+lv_obj_t *create_calendar_screen(void);
+void delete_calendar_screen(void);
 
 #endif

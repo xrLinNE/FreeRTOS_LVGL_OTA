@@ -3,6 +3,8 @@
 
 #include "sys.h"
 
+
+#define USE_SPI2 0	//硬件SPI
 #define USE_HARDWARE_SPI 1	//硬件SPI
 #define USE_DMA_LCD 		 1	//使用DMA，本代码只有当使用硬件SPI时，才使用DMA，否则报错
 
@@ -12,14 +14,16 @@
 #define LCD_W 240
 #define LCD_H 240
 
+//										SPI2	 				SPI 1
 //              GND   
 //              VCC  
-//              SCL   PB10	SCLK
-//              SDA   PC3		MOSI
+//              SCL   PB10	SCLK		PA5
+//              SDA   PC3		MOSI		PA7
 //              RES   PC4
 //              DC    PC5
 //              BLK   PC6
 
+#if	USE_SPI2
 //-----------------LCD端口定义---------------- 
 #define LCD_SCL_CLK  			RCC_AHB1Periph_GPIOB
 #define LCD_Rem_CLK  			RCC_AHB1Periph_GPIOC
@@ -51,6 +55,41 @@
 
 #define LCD_BLK_Clr()  GPIO_ResetBits(LCD_Rem_Port,LCD_BLK_Pin)//BLK
 #define LCD_BLK_Set()  GPIO_SetBits(LCD_Rem_Port,LCD_BLK_Pin)
+
+#else
+
+#define LCD_SCL_CLK  			RCC_AHB1Periph_GPIOA
+#define LCD_Rem_CLK  			RCC_AHB1Periph_GPIOC
+
+#define LCD_SCL_Port 			GPIOA
+#define LCD_Rem_Port 			GPIOC
+
+#define LCD_SCLK_Pin 			GPIO_Pin_5
+#define LCD_SCLK_Source 	GPIO_PinSource5
+
+#define LCD_SDA_Pin 			GPIO_Pin_7
+#define LCD_SDA_Source 		GPIO_PinSource7
+
+#define LCD_RES_Pin 			GPIO_Pin_4
+#define LCD_DC_Pin 				GPIO_Pin_5
+#define LCD_BLK_Pin 			GPIO_Pin_6
+//-----------------LCD端口操作---------------- 
+#define LCD_SCLK_Clr() GPIO_ResetBits(LCD_SCL_Port,LCD_SCLK_Pin)//SCL=SCLK
+#define LCD_SCLK_Set() GPIO_SetBits(LCD_SCL_Port,LCD_SCLK_Pin)
+
+#define LCD_MOSI_Clr() GPIO_ResetBits(LCD_SCL_Port,LCD_SDA_Pin)//SDA=MOSI
+#define LCD_MOSI_Set() GPIO_SetBits(LCD_SCL_Port,LCD_SDA_Pin)
+
+#define LCD_RES_Clr()  GPIO_ResetBits(LCD_Rem_Port,LCD_RES_Pin)//RES
+#define LCD_RES_Set()  GPIO_SetBits(LCD_Rem_Port,LCD_RES_Pin)
+
+#define LCD_DC_Clr()   GPIO_ResetBits(LCD_Rem_Port,LCD_DC_Pin)//DC
+#define LCD_DC_Set()   GPIO_SetBits(LCD_Rem_Port,LCD_DC_Pin)
+
+#define LCD_BLK_Clr()  GPIO_ResetBits(LCD_Rem_Port,LCD_BLK_Pin)//BLK
+#define LCD_BLK_Set()  GPIO_SetBits(LCD_Rem_Port,LCD_BLK_Pin)
+
+#endif
 
 
 

@@ -2,6 +2,8 @@
 #include "led.h"
 #include "sys.h"
 #include "usart.h"
+#include "lvgl.h"                
+#include "lv_port_disp.h"        // 支持LVGL显示
 //定时器的内部时钟源有APB1和APB2，如果其分频系数为1，则定时器时钟源等于APB1/APB2，否则为2倍，具体见RCC->DCKCFGR寄存器描述
 
 //RCC->DCKCFGR，
@@ -30,8 +32,8 @@ void TIM3_Int_Init(u16 arr,u16 psc)
 	TIM_Cmd(TIM3,ENABLE); //使能定时器3
 	
 	NVIC_InitStructure.NVIC_IRQChannel=TIM3_IRQn; //定时器3中断
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0x04; //抢占优先级1
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority=0x00; //子优先级3
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0x00; //抢占优先级		中断高优先级，为LVGL提供时基
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority=0x00; //子优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 	
@@ -66,8 +68,7 @@ void TIM3_IRQHandler(void)
 {
 	if(TIM_GetITStatus(TIM3,TIM_IT_Update)==SET) //溢出中断
 	{
-		LED0_TOGGLE();
-		printf("TIM3 PRIO 4 RUNNING...\r\n");
+		lv_tick_inc(1);															//LVGL提供时基
 		TIM_ClearITPendingBit(TIM3,TIM_IT_Update);  //清除中断标志位
 	}
 }

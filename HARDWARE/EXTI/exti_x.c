@@ -76,7 +76,7 @@ void EXTI1_IRQHandler(void)
 				RM_Flag = 0;			
 //			}
 			LED1_TOGGLE();			 
-			printf("key1 it test..\r\n");
+			printf("key1 press..\r\n");
 		}		 
 		EXTI_ClearITPendingBit(EXTI_Line1);//清除LINE上的中断标志位 
 	}
@@ -99,7 +99,7 @@ void EXTI2_IRQHandler(void)
 				LM_Flag = 0;			
 //			}			
 			LED1_TOGGLE();			
-			printf("key2 it test..\r\n");
+			printf("key2 press..\r\n");
 		}		
 		EXTI_ClearITPendingBit(EXTI_Line2);//清除LINE上的中断标志位 
 	}
@@ -122,7 +122,7 @@ void EXTI3_IRQHandler(void)
 				EN_Flag = 0;			
 //			}			
 			LED1_TOGGLE();	
-			printf("key3 it test..\r\n");
+			printf("key3 press..\r\n");
 		}		 
 		EXTI_ClearITPendingBit(EXTI_Line3);//清除LINE上的中断标志位 
 	}
@@ -145,7 +145,7 @@ void EXTI4_IRQHandler(void)
 				EX_Flag = 0;			
 //			}			
 			LED1_TOGGLE();			
-			printf("key4 it test..\r\n");
+			printf("key4 press..\r\n");
 		}		 
 		EXTI_ClearITPendingBit(EXTI_Line4);//清除LINE上的中断标志位 
 	}

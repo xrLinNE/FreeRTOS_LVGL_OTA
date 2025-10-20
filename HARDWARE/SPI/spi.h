@@ -7,6 +7,7 @@
 
 
 void SPI2_Init(void);
+void SPI1_Init(void);
 
 
 

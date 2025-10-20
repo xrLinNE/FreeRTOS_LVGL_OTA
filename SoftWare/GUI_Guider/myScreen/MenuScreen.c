@@ -1,55 +1,22 @@
-#include "MenuTask.h"
-
-extern QueueHandle_t g_xQueueMenu;//队列
-//extern SemaphoreHandle_t g_xSemMenu; 
-
-extern TaskHandle_t xShowMenuTaskHandle;
-extern TaskHandle_t xShowTimeTaskHandle;
-extern TaskHandle_t xShowWoodenFishTaskHandle;
-extern TaskHandle_t xShowFlashLightTaskHandle;
-extern TaskHandle_t xShowSettingTaskHandle;
-extern TaskHandle_t xShowClockTaskHandle;
-extern TaskHandle_t xShowCalendarTaskHandle;
-extern TaskHandle_t xShowDHT11TaskHandle;
-
-//const char str[5][10] = {"手电筒", "日历", "闹钟", "温湿度", "设置"};//;
-//const char *str[] = {"手电筒", "日历", "闹钟", "温湿度", "设置"};
-//const char *str[] = {"手电筒", "日历", "闹钟", "温湿度", "设置"};
-const char *str[] = {"手电筒", "日历", "闹钟", "温湿度", "设置"};
-
-/* app's name */
-//str1 fly1 = {"fly1", NULL};
-//str1 dino1 = {"hum", NULL};
-//str1 test1 = {"torch", NULL};
-//str1 block1 = {"clock", NULL};
-//str1 setting1 = {"setting", NULL};
-
-/* some data */
-//uint8_t dock_pos = 2;
-//uint8_t dock_status = 10;
-//uint8_t dock[5] = {45, 55, 65, 75, 85};
-//uint8_t dock_y = 58, dock_r = 3;  
-//int str_flag = 2;
-//int8_t R_move_pos[5] = {-1, 9, 49, 89, 129};
-//BaseType_t select = 3;
-
-//int queue_flag = 0;
-//uint32_t end_flag = 1;
-//uint32_t seclect_end = 0;//showsetting
-//LVGL相关定义
-int order[3] = {1, 2, 3}; 
-#define MENU_ANIM_TIME 			300
-#define CONTAINER_CENTER_X 	0        	//容器中心坐标
-#define NUM_IMG 						5					//图片总数
-#define VISIBLE 						3					//屏幕可现实图片数
-#define ANIM_SPEED 					500				//动画速度
+#include "MenuScreen.h"
+lv_obj_t *scr_menu = NULL;//菜单任务屏幕
+//const char *str[] = {"手电筒", "日历", "闹钟", "温湿度", "设置"};//手电筒日历闹钟温湿度设置
+//为了避免编译器编码问题，这里直接使用汉字的UTF-8编码；注意只有UTF-8编码才能检索到字库menu_label_font中的字
+//检索逻辑 汉字->utf-8编码->unicode->找到汉字
+const char *str[5] = {
+    "\xE6\x89\x8B\xE7\x94\xB5\xE7\xAD\x92",  // 手电筒
+    "\xE6\x97\xA5\xE5\x8E\x86",             // 日历
+    "\xE9\x97\xB9\xE9\x92\x9F",             // 闹钟
+    "\xE6\xB8\xA9\xE6\xB9\xBF\xE5\xBA\xA6", // 温湿度 "\xA9\xE6\xBF\x95\xE5\xBA\xA6",
+    "\xE8\xAE\xBE\xE7\xBD\xAE"              // 设置
+};
 static lv_obj_t * menu_cont;					//菜单容器
 static lv_obj_t *dot_cont;						//底部圆圈容器
 static lv_obj_t *menu_label;					//顶部标签
 static lv_obj_t *imgs[NUM_IMG];   		//所有图片对象
 static lv_obj_t *dots[NUM_IMG];				//圆圈对象
-static int order[VISIBLE];        		//当前屏幕显示的3张图片索引
-static int zoom_large 		= 512; 			//中间图片 2x; 初始尺寸为256
+int order[VISIBLE];        						//当前屏幕显示的3张图片索引
+static int zoom_large 		= 500; 			//中间图片 2x; 初始尺寸为256
 static int zoom_small 		= 180; 			//两边图片 
 // 位置偏移量（相对于容器中心）
 const int pos_offset[VISIBLE+2] = 
@@ -61,7 +28,7 @@ const int pos_offset[VISIBLE+2] =
 	184                                 //完全在右边屏幕外
 };
 // 更新底部小圆圈状态
-static void update_dots(void)
+void update_dots(void)
 {
 	for (int i = 0; i < NUM_IMG; i++)
 	{
@@ -74,25 +41,26 @@ static void update_dots(void)
 // 动画完成回调函数
 static void anim_invalidate(lv_anim_t * a)
 {
-	lv_obj_invalidate(menu_cont);  
+	lv_obj_t * img = (lv_obj_t *)a->var; 
+	lv_obj_invalidate(img);  
 }
 
 static void anim_ready_cb_r(lv_anim_t * a)
 {
-    lv_obj_t * img = (lv_obj_t *)a->var; 
-    lv_obj_set_x(img, pos_offset[4]); // 最左边图片放到最右边隐藏位置
-	lv_obj_invalidate(menu_cont);  
+	lv_obj_t * img = (lv_obj_t *)a->var; 
+	lv_obj_set_x(img, pos_offset[4]); // 最左边图片放到最右边隐藏位置
+	lv_obj_invalidate(img);  
 }
 
 static void anim_ready_cb_l(lv_anim_t * a)
 {
-    lv_obj_t * img = (lv_obj_t *)a->var; 
-    lv_obj_set_x(img, pos_offset[0]); // 最右边图片放到最右边隐藏位置
-	lv_obj_invalidate(menu_cont);  
+	lv_obj_t * img = (lv_obj_t *)a->var; 
+	lv_obj_set_x(img, pos_offset[0]); // 最右边图片放到最右边隐藏位置
+	lv_obj_invalidate(img);  
 }
 
 //右移动画
-void menu_switch_right()
+void menu_switch_right(void)
 {
 	lv_anim_t a_x, a_zoom;
 	int next_idx = (order[VISIBLE-1] + 1) % NUM_IMG;								// 新进入右侧图片索引
@@ -159,11 +127,10 @@ void menu_switch_right()
 	order[1] = order[2];
 	order[2] = next_idx;
 	lv_label_set_text(menu_label, str[order[1]]);
-lv_obj_align(menu_label, LV_ALIGN_TOP_MID, 0, 10); // 保持位置
+	lv_obj_align(menu_label, LV_ALIGN_TOP_MID, 0, 5); // 保持位置
 }
-
 //左移动画
-void menu_switch_left()
+void menu_switch_left(void)
 {
     lv_anim_t a_x, a_zoom;
     int next_idx = (order[0] - 1 + NUM_IMG) % NUM_IMG; 							// 新进入左侧图片索引
@@ -228,19 +195,16 @@ void menu_switch_left()
     order[1] = order[0];
     order[0] = next_idx;
 		lv_label_set_text(menu_label, str[order[1]]);
-lv_obj_align(menu_label, LV_ALIGN_TOP_MID, 0, 10);
+		lv_obj_align(menu_label, LV_ALIGN_TOP_MID, 0, 5);
 }
 
-
-void MenuTask(void *params)
-{	
+//菜单任务屏幕
+lv_obj_t *create_menu_screen(void)
+{
+	//创建菜单屏幕
+	lv_obj_t *scr = lv_obj_create(NULL);
 	int spacing = 20;  // 圆点间距
-	Key_data	key_data;
-	//xSemaphoreTake(g_xQueueMenu, portMAX_DELAY);
-	//初始化队列
-	g_xQueueMenu = xQueueCreate(4, 4);
-	
-	//主菜单初始化
+	//菜单容器
 	//图片声明
 	LV_IMG_DECLARE(icon_flashlight_64);
 	LV_IMG_DECLARE(icon_calendar_64);
@@ -249,13 +213,13 @@ void MenuTask(void *params)
 	LV_IMG_DECLARE(icon_thermometer_64);
 	//菜单容器
 	const lv_img_dsc_t *icon_list[NUM_IMG] = {&icon_flashlight_64, &icon_calendar_64, &icon_clock_64, &icon_thermometer_64, &icon_settings_64};
-	menu_cont = lv_obj_create(lv_scr_act());								     //当前活动屏幕创建容器
+	menu_cont = lv_obj_create(scr);								     //当前活动屏幕创建容器
 	lv_obj_set_size(menu_cont, 240, 240);     							     // 容器大小
 	lv_obj_center(menu_cont);                								     // 居中
 	lv_obj_clear_flag(menu_cont, LV_OBJ_FLAG_SCROLLABLE); 	     // 禁止滚动
-	lv_obj_set_style_bg_color(menu_cont, lv_color_white(), 0);   // 设置背景为白色
+	//lv_obj_set_style_bg_color(menu_cont, lv_color_white(), 0);   // 设置背景为白色
+	lv_obj_set_style_bg_color(menu_cont, lv_color_hex(0xCFEDE7), 0);
 	lv_obj_set_style_bg_opa(menu_cont, LV_OPA_COVER, 0);         // 确保背景不透明
-	// 去掉边框
 	lv_obj_set_style_border_width(menu_cont, 0, 0);          		 // 去容器边框 边框宽度 0
 	//初始化图片位置
 	for(int i=0;i<NUM_IMG;i++)
@@ -268,7 +232,7 @@ void MenuTask(void *params)
     else if(i == NUM_IMG-1) lv_obj_align(imgs[i], LV_ALIGN_CENTER, pos_offset[4], 0);
     else lv_obj_align(imgs[i], LV_ALIGN_CENTER, pos_offset[i], 0); // 屏幕显示的3张
 	}
-	lv_img_set_zoom(imgs[2], zoom_large);	// 设置中间图片缩放
+	lv_img_set_zoom(imgs[2], zoom_large);											// 设置中间图片缩放
 	// 初始化 order 显示 2,3,4
 	order[0] = 1;  // 左边 2
 	order[1] = 2;  // 中间 3
@@ -296,51 +260,19 @@ void MenuTask(void *params)
 	lv_obj_set_style_bg_color(dots[order[1]], lv_color_hex(0xC7C3F4), 0);// 当前选中项（order[1]）的圆点高亮
 	// 顶部标签
 	menu_label = lv_label_create(menu_cont);
-	LV_FONT_DECLARE(menu_label_font);																		//定义字体
+	LV_FONT_DECLARE(menu_label_font_20px);															//定义字体
 	lv_obj_set_style_text_color(menu_label, lv_color_black(), 0); 			//文字颜色
-	lv_obj_set_style_text_font(menu_label, &menu_label_font, 0); 				//字体						对应宏LV_FONT_MONTSERRAT_14要开
+	lv_obj_set_style_text_font(menu_label, &menu_label_font_20px, 0); 	//字体；若使用LVGL自带字体则对应宏要开
+	lv_obj_align(menu_label, LV_ALIGN_TOP_MID, 0, 5); 									//上方偏移 
 	lv_label_set_text(menu_label, str[order[1]]);    										//初始显示中间图片对应的名称
-	lv_obj_align(menu_label, LV_ALIGN_TOP_MID, 0, 10); 									//上方偏移 10px
-
-	
-	while(1)
+	return scr;
+}
+void delete_menu_screen(void) 
+{
+	if (scr_menu) 
 	{
-		//等待队列
-		xQueueReceive(g_xQueueMenu, &key_data, portMAX_DELAY);
-		/* handle data */
-		if(key_data.rdata == 1)
-		{	
-			menu_switch_right();
-			update_dots();
-			key_data.rdata = 0;
-			key_data.ldata = 0;	
-		}
-		else if(key_data.ldata == 1)
-		{
-
-			menu_switch_left();
-			update_dots();
-			key_data.rdata = 0;
-			key_data.ldata = 0;
-		}
-		/* ststus machine : task scheduling  */
-		else if(key_data.exdata == 1)
-		{
-//			switch(dock_pos)
-//			{
-//				case 0: vTaskResume(xShowCalendarTaskHandle);vTaskSuspend(NULL);key_data.exdata = 0;break;
-//				case 1: vTaskResume(xShowFlashLightTaskHandle);vTaskSuspend(NULL);key_data.exdata = 0;break;
-//				case 2: vTaskResume(xShowDHT11TaskHandle);vTaskSuspend(NULL);key_data.exdata = 0;break;
-//				case 3: vTaskResume(xShowClockTaskHandle);vTaskSuspend(NULL);key_data.exdata = 0;break;
-//				case 4: vTaskResume(xShowSettingTaskHandle);vTaskSuspend(NULL);key_data.exdata = 0;break;
-//			}
-		}
-		else if(key_data.updata == 1)
-		{
-//			vTaskResume(xShowTimeTaskHandle);
-//			vTaskSuspend(NULL);
-			key_data.updata = 0;
-		}
+		lv_obj_del(scr_menu);
+		scr_menu = NULL;
 	}
 }
 

@@ -14,6 +14,7 @@
 //�����Լ���Ļ����
 #include "lcd_init.h"
 #include "lcd.h"
+#include "dma.h"
 
 /*********************
  *      DEFINES
@@ -52,12 +53,25 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
+#define	SINGLE_BUFF	0
+#define	BUFF_ROWS	60
+ #if SINGLE_BUFF
+ //单缓冲
+static lv_disp_draw_buf_t draw_buf_dsc_1;
+static lv_color_t buf_1[MY_DISP_HOR_RES * BUFF_ROWS];                          /*A buffer for 60 rows*/
+#else
+//双缓冲
+static lv_disp_draw_buf_t draw_buf_dsc_1;
+static lv_color_t buf_1[MY_DISP_HOR_RES * BUFF_ROWS];                        /*A buffer for 60 rows*/
+static lv_color_t buf_2[MY_DISP_HOR_RES * BUFF_ROWS];                        /*An other buffer for 60 rows*/
+#endif
 
 void lv_port_disp_init(void)
-{
+{	
     /*-------------------------
      * Initialize your display
      * -----------------------*/
+		MYDMA_Config1(DMA2_Stream5, DMA_Channel_3, (u32)&SPI1->DR, (uint32_t)buf_1, sizeof(buf_1),1);//16位DMA SPI1，这里配置的内存地址无所谓，最终的地址是在flush中
     disp_init();
 
     /*-----------------------------
@@ -85,10 +99,12 @@ void lv_port_disp_init(void)
      *      and you only need to change the frame buffer's address.
      */
 
-    /* Example for 1) */
-    static lv_disp_draw_buf_t draw_buf_dsc_1;
-    static lv_color_t buf_1[MY_DISP_HOR_RES * 10];                          /*A buffer for 10 rows*/
-    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 10);   /*Initialize the display buffer*/
+
+		#if SINGLE_BUFF
+    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * BUFF_ROWS);   /*Initialize the display buffer*/
+		#else
+		lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, buf_2, MY_DISP_HOR_RES * BUFF_ROWS);   /*Initialize the display buffer*/
+		#endif
 
 //    /* Example for 2) */
 //    static lv_disp_draw_buf_t draw_buf_dsc_2;
@@ -165,20 +181,42 @@ void disp_disable_update(void)
  *'lv_disp_flush_ready()' has to be called when finished.*/
 static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
-    if(disp_flush_enabled) {
-        /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
+    if(disp_flush_enabled) 
+		{
+			int16_t w = (area->x2 - area->x1 + 1);
+			int16_t h = (area->y2 - area->y1 + 1);
+			uint32_t draw_size = w * h;
+			uint32_t num_left = draw_size;
+			u32 offset = 0;
+			u16 batch_size;
+			SPI_DataSizeConfig(SPI1, SPI_DataSize_8b);//8位 SPI发送坐标
+			LCD_Address_Set(area->x1, area->y1, area->x2, area->y2);
+			SPI_DataSizeConfig(SPI1, SPI_DataSize_16b);//16位 SPI 发送DMA数据
 
-//        int32_t x;
-//        int32_t y;
-//        for(y = area->y1; y <= area->y2; y++) {
-//            for(x = area->x1; x <= area->x2; x++) {
-//                /*Put a pixel to the display. For example:*/
-//								LCD_DrawPoint(x, y, color_p->full);
-//                /*put_px(x, y, *color_p)*/
-//                color_p++;
-//            }
-//        }
-			LCD_Fill_Color(area->x1, area->y1, area->x2, area->y2, (uint16_t *)color_p);
+			while (num_left > 0)
+			{
+					if (num_left > 65534)
+							batch_size = 65534;
+					else
+							batch_size = num_left;
+
+					DMA2_Stream5->M0AR = (u32)&color_p[offset];         //寄存器设置内存地址
+					SPI_I2S_DMACmd(SPI1, SPI_I2S_DMAReq_Tx, ENABLE);		//使能SPI DMA传输
+				
+					DMA_Cmd(DMA2_Stream5, DISABLE);                     //关闭DMA传输 
+					while (DMA_GetCmdStatus(DMA2_Stream5) != DISABLE);	//确保DMA可以被设置
+					DMA_SetCurrDataCounter(DMA2_Stream5,batch_size);  	//数据传输量  
+					DMA_Cmd(DMA2_Stream5, ENABLE);                      //开启DMA传输 
+					
+					while (DMA_GetFlagStatus(DMA2_Stream5, DMA_FLAG_TCIF5) == RESET);
+					DMA_ClearFlag(DMA2_Stream5, DMA_FLAG_TCIF5);
+
+					offset += batch_size;
+					num_left -= batch_size;
+			}
+
+			while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
+			while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_BSY) == SET);
     }
 
     /*IMPORTANT!!!

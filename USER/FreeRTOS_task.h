@@ -1,6 +1,6 @@
 #ifndef __SHOWTIME_TASK_H
 #define __SHOWTIME_TASK_H
-//Í·ÎÄ¼ş
+//å¤´æ–‡ä»¶
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
@@ -9,13 +9,16 @@
 #include "key.h"
 #include "delay.h"
 //LVGL
-#include "lvgl.h"                // ËüÎªÕû¸öLVGLÌá¹©ÁË¸üÍêÕûµÄÍ·ÎÄ¼şÒıÓÃ
-#include "lv_port_disp.h"        // LVGLµÄÏÔÊ¾Ö§³Ö
+#include "lvgl.h"                
+#include "lv_port_disp.h"        
 //GUI Guider
-#include "gui_guider.h"        	 // Ê¹ÓÃGUI Guider»æÖÆµÄÍ¼Ïñ
-//ÈÎÎñÍ·ÎÄ¼ş
+#include "gui_guider.h"        	 // ä½¿ç”¨GUI GUIDERè½¯ä»¶ç»˜åˆ¶çš„ç”»é¢
+#include "lv_demo_benchmark.h"		//æµ‹è¯•ç”¨
+//ä»»åŠ¡
 #include "MenuTask.h"
-//º¯Êı
+#include "TimeTask.h"
+#include "CalendarTask.h"
+//å‡½æ•°
 void FreeRTOS_task(void);
 
 #endif

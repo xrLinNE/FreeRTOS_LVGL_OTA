@@ -29,11 +29,11 @@ void LCD_Writ_Bus(u8 dat)
 {	
 	#if USE_HARDWARE_SPI
 
-	while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET);
-	SPI_I2S_SendData(SPI2, dat);
-	while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_RXNE) == RESET);
-	SPI2->DR;	// 	读掉接收缓冲区，这里F4要读，否则时序混乱！！！！会产生OVR错误，导致下一次写DR失败！！
-	while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_BSY) == SET);  // 	等待总线空闲
+	while(SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
+	SPI_I2S_SendData(SPI1, dat);
+	while(SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
+	SPI1->DR;	// 	读掉接收缓冲区，这里F4要读，否则时序混乱！！！！会产生OVR错误，导致下一次写DR失败！！
+	while(SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_BSY) == SET);  // 	等待总线空闲
 	
 	#else
 	u8 i;
@@ -143,7 +143,7 @@ void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2)
 
 void LCD_Init(void)
 {	
-	SPI2_Init();
+	SPI1_Init();
 	LCD_GPIO_Init();//初始化GPIO
 	
 	LCD_RES_Clr();//复位

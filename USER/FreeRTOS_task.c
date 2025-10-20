@@ -1,32 +1,50 @@
 #include "FreeRTOS_task.h"
-
 //任务优先级
 #define START_TASK_PRIO									1		
-#define LVGL_TEST_TASK_PRIO							2		
-#define LED_TASK_PRIO										3	
-#define MENU_TASK_PRIO									3	
+#define LVGL_HEART_TASK_PRIO						4		
+#define LED_TASK_PRIO										2	
+#define MENU_TASK_PRIO									2
+#define TIME_TASK_PRIO									3
+#define CALENDAR_TASK_PRIO							2
 //任务堆栈
-#define START_TASK_STACK_SIZE						128				//这里的单位是字，也就是128字，即128x4=512B 512字节
-#define LVGL_TEST_TASK_STACK_SIZE				128	
+#define START_TASK_STACK_SIZE						64				//这里的单位是字，也就是128字，即128x4=512B 512字节
+#define LVGL_HEART_TASK_STACK_SIZE			512	
 #define LED_TASK_STACK_SIZE							128	
-#define MENU_TASK_STACK_SIZE						256	
+#define MENU_TASK_STACK_SIZE						400	
+#define TIME_TASK_STACK_SIZE						400	
+#define CALENDAR_TASK_STACK_SIZE				128	
 //任务句柄
 TaskHandle_t 	start_task_handler;
-TaskHandle_t 	lvgl_test_handler;
-TaskHandle_t 	led_task_handler;
+TaskHandle_t 	lvgl_heart_handler;		//lvgl心跳任务
+TaskHandle_t 	led_task_handler;			//led任务
 
-TaskHandle_t 	MenuTask_handler;
-TimerHandle_t g_Timer_handler;			//时间显示任务句柄
-TimerHandle_t g_Clock_Timer_handler;//闹钟任务句柄
+TaskHandle_t 	MenuTask_handler;			//菜单任务
+TaskHandle_t 	TimeTask_handler;			//时间任务
+TaskHandle_t 	CalendarTask_handler;	//日历任务
+TimerHandle_t g_Timer_handler;			//时间定时器句柄
+TimerHandle_t g_Clock_Timer_handler;//闹钟定时器句柄
 //变量
 //lv_ui 				guider_ui;//gui_guider.h 中使用到了 extern lv_ui guider_ui;
 //队列
 QueueHandle_t g_xQueueMenu;						//传递按键数据	
 //任务函数
 void start_task( void * pvParameters );
-void lvgl_test_task( void * pvParameters );
+void lvgl_heart_task( void * pvParameters );
 void led_task( void * pvParameters );
+//外部任务/回调函数
 extern void MenuTask(void *params);
+extern void TimeTask(void *params);
+extern void CalendarTask(void *params);
+extern void TimerCallBackFun( TimerHandle_t pxTimer );
+//屏幕
+extern lv_obj_t *scr_menu;//菜单任务屏幕
+extern lv_obj_t *scr_time;//时间任务屏幕
+//extern void ClockTimerCallBackFun(void);
+
+//钩子函数
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
+    printf("卡死: 任务 %s \r\n", pcTaskName);
+}
 
 void FreeRTOS_task(void)
 {
@@ -44,28 +62,45 @@ void FreeRTOS_task(void)
 void start_task( void * pvParameters )
 {
 	taskENTER_CRITICAL();               /* 进入临界区 */
-	
-//	g_Timer_handler = xTimerCreate("timer1", 1000, pdTRUE, NULL, (TimerCallbackFunction_t)TimerCallBackFun);//周期定时器
-//	g_Clock_Timer_handler = xTimerCreate("timer2", 100, pdTRUE, NULL, (TimerCallbackFunction_t)ClockTimerCallBackFun);//周期定时器
-
-//LVGL绘制任务
+	//定时器
+	g_Timer_handler = xTimerCreate("timer1", 1000, pdTRUE, (void *)1, TimerCallBackFun);						//周期定时器
+	//g_Clock_Timer_handler = xTimerCreate("timer2", 100, pdTRUE, NULL, (TimerCallbackFunction_t)ClockTimerCallBackFun);//周期定时器
+//LVGL心跳任务
 	xTaskCreate(
-								 (TaskFunction_t				) 	lvgl_test_task,							
-								 (char *        				)		"lvgl_test_task",						
-								 (configSTACK_DEPTH_TYPE) 	LVGL_TEST_TASK_STACK_SIZE,	
+								 (TaskFunction_t				) 	lvgl_heart_task,							
+								 (char *        				)		"lvgl_heart_task",						
+								 (configSTACK_DEPTH_TYPE) 	LVGL_HEART_TASK_STACK_SIZE,	
 								 (void *								)		NULL,										
-								 (UBaseType_t						) 	LVGL_TEST_TASK_PRIO,				
-								 (TaskHandle_t *				)		&lvgl_test_handler			
+								 (UBaseType_t						) 	LVGL_HEART_TASK_PRIO,				
+								 (TaskHandle_t *				)		&lvgl_heart_handler			
 						 );	
+//时间任务								 
+	if(xTaskCreate(
+								 (TaskFunction_t				) 	TimeTask,							
+								 (char *        				)		"TimeTask",						
+								 (configSTACK_DEPTH_TYPE) 	TIME_TASK_STACK_SIZE,	
+								 (void *								)		NULL,										
+								 (UBaseType_t						) 	TIME_TASK_PRIO,				
+								 (TaskHandle_t *				)		&TimeTask_handler			
+						 ) != pdPASS)	printf("Create Time task failed!\r\n");
 //菜单任务								 
-	xTaskCreate(
+	if(xTaskCreate(
 								 (TaskFunction_t				) 	MenuTask,							
 								 (char *        				)		"MenuTask",						
 								 (configSTACK_DEPTH_TYPE) 	MENU_TASK_STACK_SIZE,	
 								 (void *								)		NULL,										
 								 (UBaseType_t						) 	MENU_TASK_PRIO,				
 								 (TaskHandle_t *				)		&MenuTask_handler			
-						 );	
+						 ) != pdPASS)	printf("Create Menu task failed!\r\n");
+//日历任务								 
+	if(xTaskCreate(
+								 (TaskFunction_t				) 	CalendarTask,							
+								 (char *        				)		"CalendarTask",						
+								 (configSTACK_DEPTH_TYPE) 	CALENDAR_TASK_STACK_SIZE,	
+								 (void *								)		NULL,										
+								 (UBaseType_t						) 	CALENDAR_TASK_PRIO,				
+								 (TaskHandle_t *				)		&CalendarTask_handler			
+						 ) != pdPASS)	printf("Create calendar task failed!\r\n");
 //LED任务表示系统在运行
 	xTaskCreate(
 								 (TaskFunction_t				) 	led_task,							
@@ -74,7 +109,7 @@ void start_task( void * pvParameters )
 								 (void *								)		NULL,										
 								 (UBaseType_t						) 	LED_TASK_PRIO,				
 								 (TaskHandle_t *				)		&led_task_handler			
-						 );	
+						 );
 	vTaskDelete(NULL);									//创建完三个任务后，删除自己
 	taskEXIT_CRITICAL();                /* 退出临界区 */
 }
@@ -87,18 +122,13 @@ static void anim_size_cb(void * var, int32_t v)
 {
     lv_obj_set_size(var, v, v);
 }
-static void set_angle(void * img, int32_t v)
-{
-    lv_img_set_angle(img, v);
-}
 
-static void set_zoom(void * img, int32_t v)
+/**
+ * Create a playback animation
+ */
+void lv_example_anim_2(void)
 {
-    lv_img_set_zoom(img, v);
-	
-}
-void lv_example(void)
-{
+
     lv_obj_t * obj = lv_obj_create(lv_scr_act());
     lv_obj_set_style_bg_color(obj, lv_palette_main(LV_PALETTE_RED), 0);
     lv_obj_set_style_radius(obj, LV_RADIUS_CIRCLE, 0);
@@ -121,13 +151,12 @@ void lv_example(void)
     lv_anim_set_exec_cb(&a, anim_x_cb);
     lv_anim_set_values(&a, 10, 240);
     lv_anim_start(&a);
-
 }
-void lvgl_test_task( void * pvParameters )
-{
-	//setup_ui(&guider_ui);//初始化ui
 
-	//lv_example();
+void lvgl_heart_task( void * pvParameters )
+{
+//	lv_demo_benchmark();
+	//lv_example_anim_2();
 	while(1)
 	{
 		lv_timer_handler();

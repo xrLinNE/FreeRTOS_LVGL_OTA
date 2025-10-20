@@ -5,7 +5,7 @@
 
 void MYDMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u32 chx,u32 par,u32 mar,u16 ndtr);
 void MYDMA_Config1(DMA_Stream_TypeDef *DMA_Streamx,u32 chx,u32 par,u32 mar,u16 ndtr,u8 mem_inc_enable);
-void MYDMA_Enable(DMA_Stream_TypeDef*DMA_CHx);
+void MYDMA_Enable(DMA_Stream_TypeDef *DMA_Streamx);
 		   
 #endif
 

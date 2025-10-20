@@ -3,6 +3,7 @@
 #include "lcdfont.h"
 #include "delay.h"
 #include "dma.h"
+#include "lv_port_disp.h"
 //16-bit/pixel: RGB=(565)
 /******************************************************************************
       函数说明：在指定区域填充颜色
@@ -38,18 +39,18 @@ void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color)
 			num1=num;
 		}	
 		
-		MYDMA_Config1(DMA1_Stream4,DMA_Channel_0,(u32)&SPI2->DR,(u32)color1,num1,0);//内存地址不递增
-		SPI_DataSizeConfig(SPI2, SPI_DataSize_16b);										//设置SPI16位传输模式
-		SPI_I2S_DMACmd(SPI2,SPI_I2S_DMAReq_Tx,ENABLE);								//使能发送缓冲区 DMA
+		MYDMA_Config1(DMA2_Stream5,DMA_Channel_3,(u32)&SPI1->DR,(u32)color1,num1,0);//内存地址不递增
+		SPI_DataSizeConfig(SPI1, SPI_DataSize_16b);										//设置SPI16位传输模式
+		SPI_I2S_DMACmd(SPI1,SPI_I2S_DMAReq_Tx,ENABLE);								//使能发送缓冲区 DMA
 
-		MYDMA_Enable(DMA1_Stream4);
-		while(DMA_GetFlagStatus(DMA1_Stream4, DMA_FLAG_TCIF4)==RESET);
-		DMA_ClearFlag(DMA1_Stream4, DMA_FLAG_TCIF4);
+		MYDMA_Enable(DMA2_Stream5);
+		while(DMA_GetFlagStatus(DMA2_Stream5, DMA_FLAG_TCIF5)==RESET);
+		DMA_ClearFlag(DMA2_Stream5, DMA_FLAG_TCIF5);
 
-		while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_TXE) == RESET);// 	先等待 TXE = 1
-		while(SPI_I2S_GetFlagStatus(SPI2, SPI_I2S_FLAG_BSY) == SET);  // 	再等待 BSY = 0
+		while(SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);// 	先等待 TXE = 1
+		while(SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_BSY) == SET);  // 	再等待 BSY = 0
   }
-	SPI_DataSizeConfig(SPI2, SPI_DataSize_8b);//设置SPI8位传输模式
+	SPI_DataSizeConfig(SPI1, SPI_DataSize_8b);//设置SPI8位传输模式
 	//SPI_Cmd(SPI2, ENABLE);//使能SPI	
 #else
 	u16 i,j; 
