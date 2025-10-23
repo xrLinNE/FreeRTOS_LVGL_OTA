@@ -459,6 +459,11 @@
               <FileType>1</FileType>
               <FilePath>..\TASK\CalendarTask.c</FilePath>
             </File>
+            <File>
+              <FileName>ClockTask.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\ClockTask.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -545,14 +550,14 @@
               <FilePath>..\HARDWARE\SPI\spi.c</FilePath>
             </File>
             <File>
-              <FileName>lcd.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\ST7789\lcd.c</FilePath>
-            </File>
-            <File>
               <FileName>lcd_init.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\ST7789\lcd_init.c</FilePath>
+            </File>
+            <File>
+              <FileName>lcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\ST7789\lcd.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -610,6 +615,26 @@
           <GroupName>LVGL/myGUI</GroupName>
           <Files>
             <File>
+              <FileName>MenuScreen.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SoftWare\GUI_Guider\myScreen\MenuScreen.c</FilePath>
+            </File>
+            <File>
+              <FileName>TimeScreen.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SoftWare\GUI_Guider\myScreen\TimeScreen.c</FilePath>
+            </File>
+            <File>
+              <FileName>ClockScreen.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SoftWare\GUI_Guider\myScreen\ClockScreen.c</FilePath>
+            </File>
+            <File>
+              <FileName>CalendarScreen.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SoftWare\GUI_Guider\myScreen\CalendarScreen.c</FilePath>
+            </File>
+            <File>
               <FileName>icon_calendar_64.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\SoftWare\GUI_Guider\myPic\icon_calendar_64.c</FilePath>
@@ -638,16 +663,6 @@
               <FileName>menu_label_font_20px.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\SoftWare\GUI_Guider\myFont\menu_label_font_20px.c</FilePath>
-            </File>
-            <File>
-              <FileName>MenuScreen.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\myScreen\MenuScreen.c</FilePath>
-            </File>
-            <File>
-              <FileName>TimeScreen.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\myScreen\TimeScreen.c</FilePath>
             </File>
             <File>
               <FileName>xn.c</FileName>
@@ -705,9 +720,14 @@
               <FilePath>..\SoftWare\LVGL_8.3\demos\benchmark\assets\lv_font_bechmark_montserrat_28_compr_az.c.c</FilePath>
             </File>
             <File>
-              <FileName>CalendarScreen.c</FileName>
+              <FileName>clock_img_64.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\SoftWare\GUI_Guider\myScreen\CalendarScreen.c</FilePath>
+              <FilePath>..\SoftWare\GUI_Guider\myPic\clock_img_64.c</FilePath>
+            </File>
+            <File>
+              <FileName>zz_img_64.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SoftWare\GUI_Guider\myPic\zz_img_64.c</FilePath>
             </File>
           </Files>
         </Group>

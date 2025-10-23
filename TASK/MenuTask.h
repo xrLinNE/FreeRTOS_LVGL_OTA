@@ -14,6 +14,7 @@
 #include "MenuScreen.h"
 #include "TimeScreen.h"
 #include "CalendarScreen.h"
+#include "ClockScreen.h"
 //函数
 void MenuTask(void *params);
 

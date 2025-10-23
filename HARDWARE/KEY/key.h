@@ -28,10 +28,10 @@
 
 //按键数据结构
 typedef struct Key_data{
-	uint8_t rdata;
+	uint8_t rdata;				
 	uint8_t ldata;
-	uint8_t updata;
-	uint8_t exdata;
+	uint8_t updata;		//确认
+	uint8_t exdata;		//退出
 }Key_data;
 
 //函数

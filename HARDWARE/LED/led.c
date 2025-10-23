@@ -20,7 +20,7 @@ void LED_Init(void)
 	GPIO_Init(LED1_GPIO_PORT, &GPIO_InitStructure);//初始化
 	
 	LED0(1);//灯开
-	LED1(1);
+	LED1(0);//灯关
 
 }
 

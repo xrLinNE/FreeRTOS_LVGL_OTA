@@ -67,16 +67,11 @@ void EXTI1_IRQHandler(void)
 	{
 		delay_xms(10);	//消抖，注意不能调用系统提供的vTaskDelay，否则会卡死
 		if(KEY1 == 0)	  
-		{	
-//			if(end_flag == 1&&seclect_end == 0)
-//			{
-				RM_Flag = 1;
-				key_data.ldata = RM_Flag;
-				xQueueSendToBackFromISR(g_xQueueMenu, &key_data, NULL);
-				RM_Flag = 0;			
-//			}
-			LED1_TOGGLE();			 
-			printf("key1 press..\r\n");
+		{
+			RM_Flag = 1;
+			key_data.ldata = RM_Flag;
+			xQueueSendToBackFromISR(g_xQueueMenu, &key_data, NULL);
+			RM_Flag = 0;			
 		}		 
 		EXTI_ClearITPendingBit(EXTI_Line1);//清除LINE上的中断标志位 
 	}
@@ -91,15 +86,10 @@ void EXTI2_IRQHandler(void)
 		delay_xms(10);	//消抖，注意不能调用系统提供的vTaskDelay，否则会卡死
 		if(KEY2 == 0)	  
 		{
-//			if(end_flag == 1&&seclect_end == 0)
-//			{
-				LM_Flag = 1;
-				key_data.rdata = LM_Flag;
-				xQueueSendToBackFromISR(g_xQueueMenu, &key_data, NULL);
-				LM_Flag = 0;			
-//			}			
-			LED1_TOGGLE();			
-			printf("key2 press..\r\n");
+			LM_Flag = 1;
+			key_data.rdata = LM_Flag;
+			xQueueSendToBackFromISR(g_xQueueMenu, &key_data, NULL);
+			LM_Flag = 0;			
 		}		
 		EXTI_ClearITPendingBit(EXTI_Line2);//清除LINE上的中断标志位 
 	}
@@ -114,15 +104,10 @@ void EXTI3_IRQHandler(void)
 		delay_xms(10);	//消抖，注意不能调用系统提供的vTaskDelay，否则会卡死
 		if(KEY3 == 0)	  
 		{
-//			if(end_flag == 1&&seclect_end == 0)
-//			{
-				EN_Flag = 1;
-				key_data.updata = EN_Flag;
-				xQueueSendToBackFromISR(g_xQueueMenu, &key_data, NULL);
-				EN_Flag = 0;			
-//			}			
-			LED1_TOGGLE();	
-			printf("key3 press..\r\n");
+			EN_Flag = 1;
+			key_data.updata = EN_Flag;
+			xQueueSendToBackFromISR(g_xQueueMenu, &key_data, NULL);
+			EN_Flag = 0;			
 		}		 
 		EXTI_ClearITPendingBit(EXTI_Line3);//清除LINE上的中断标志位 
 	}
@@ -137,15 +122,10 @@ void EXTI4_IRQHandler(void)
 		delay_xms(10);	//消抖，注意不能调用系统提供的vTaskDelay，否则会卡死
 		if(KEY4 == 0)	  
 		{
-//			if(end_flag == 1&&seclect_end == 0)
-//			{
-				EX_Flag = 1;
-				key_data.exdata = EX_Flag;
-				xQueueSendToBackFromISR(g_xQueueMenu, &key_data, NULL);
-				EX_Flag = 0;			
-//			}			
-			LED1_TOGGLE();			
-			printf("key4 press..\r\n");
+			EX_Flag = 1;
+			key_data.exdata = EX_Flag;
+			xQueueSendToBackFromISR(g_xQueueMenu, &key_data, NULL);
+			EX_Flag = 0;			
 		}		 
 		EXTI_ClearITPendingBit(EXTI_Line4);//清除LINE上的中断标志位 
 	}

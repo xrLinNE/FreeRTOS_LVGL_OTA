@@ -45,15 +45,15 @@ void CalendarTask( void * pvParameters )
 			lv_calendar_set_showed_date(calendar, year, month);
 			key_data.ldata = 0;
 		}
-		if(key_data.updata == 1)
+		if(key_data.exdata == 1)
 		{
 			if(scr_menu == NULL) scr_menu = create_menu_screen();
 //			lv_scr_load_anim(scr_menu, LV_SCR_LOAD_ANIM_FADE_IN, 400, 10, true);//带动画切换，后删除自己节省内存
 			lv_scr_load(scr_menu);//显示菜单	
-			delete_time_screen();//删除自己，节省内存
+			delete_calendar_screen();//删除自己，节省内存
 			vTaskResume(MenuTask_handler);
 			vTaskSuspend(NULL);
-			key_data.updata = 0;
+			key_data.exdata = 0;
 		}
 	}
 }

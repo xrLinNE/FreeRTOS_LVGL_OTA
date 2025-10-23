@@ -24,8 +24,7 @@ void TimeTask( void * pvParameters )
 	vTaskSuspend(MenuTask_handler);
 	vTaskSuspend(CalendarTask_handler);
 //	vTaskSuspend(SettingsTask_handler);
-//	vTaskSuspend(ClockTask_handler);
-//	vTaskSuspend(CalendarTask_handler);
+	vTaskSuspend(ClockTask_handler);
 //	vTaskSuspend(HumitureTask_handler);
 	//创建队列
 	g_xQueueMenu = xQueueCreate(1, 4);
@@ -43,7 +42,7 @@ void TimeTask( void * pvParameters )
 		if (xQueueReceive(g_xQueueMenu, &key_data, 0) == pdPASS) 
 		{
 			//退出按钮
-			if(key_data.updata == 1)
+			if(key_data.exdata == 1)
 			{	
 				if(scr_menu == NULL) scr_menu = create_menu_screen();
 //				lv_scr_load_anim(scr_menu, LV_SCR_LOAD_ANIM_FADE_IN, 400, 0, true);//带动画切换，后删除自己节省内存
@@ -51,7 +50,7 @@ void TimeTask( void * pvParameters )
 				delete_time_screen();//删除自己，节省内存
 				vTaskResume(MenuTask_handler);
 				vTaskSuspend(NULL);//挂起自己
-				key_data.updata = 0;
+				key_data.exdata = 0;
 			}
 		}
 //		UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);

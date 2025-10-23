@@ -1,117 +1,113 @@
 #include "ClockTask.h"
-//动态创建
+//队列
+extern 	QueueHandle_t g_xQueueMenu;
+//任务句柄
+extern 	TaskHandle_t MenuTask_handler;			//菜单任务
+//屏幕
+extern 	lv_obj_t *scr_menu;									//菜单任务屏幕
+//对象
+extern 	lv_obj_t *calendar;   							//日历对象 
+//外部变量
+extern	TimerHandle_t g_Clock_Timer_handler;//闹钟定时器句柄
+extern	int8_t seclect_flag;
+extern 	uint8_t g_clock_num[6];
+uint16_t 	clock_second = 0;
+uint32_t 	total_seconds_set = 0;
+uint8_t 	clock_flag = 0;
+//clock定时时间流逝显示
+uint8_t csec_unit, csec_decade, cmin_unit, cmin_decade, chour_unit, chour_decade;
 
-/*
-* start_task: 创建三个任务
-* task1: LED0 500ms闪烁
-* task2: LED1 500ms闪烁
-* task3: KEY0 按下删除task1
-*/
-#define START_TASK_PRIO					1		
-#define TASK1_PRIO							2		
-#define TASK2_PRIO							3
-#define TASK3_PRIO							4
-
-#define START_TASK_STACK_SIZE		128				//这里的单位是字，也就是128字，即128x4=512B 512字节
-#define TASK1_STACK_SIZE				128	
-#define TASK2_STACK_SIZE				128	
-#define TASK3_STACK_SIZE				128	
-
-TaskHandle_t start_task_handler;
-TaskHandle_t task1_handler;
-TaskHandle_t task2_handler;
-TaskHandle_t task3_handler;
-
-void start_task( void * pvParameters );
-void task1( void * pvParameters );
-void task2( void * pvParameters );
-void task3( void * pvParameters );
-
-void FreeRTOS_task(void)
+void ClockTask( void * pvParameters )
 {
-	xTaskCreate(
-								 (TaskFunction_t				) 	start_task,							/* 任务   			*/
-								 (char *        				)		"start_task",						/* 任务名 			*/
-								 (configSTACK_DEPTH_TYPE) 	START_TASK_STACK_SIZE,	/* 任务堆栈 		*/
-								 (void *								)		NULL,										/* 任务入口参数 */
-								 (UBaseType_t						) 	START_TASK_PRIO,				/* 任务优先级 	*/
-								 (TaskHandle_t *				)		&start_task_handler			/* 任务句柄	    */
-						 );
-	vTaskStartScheduler();//开启任务调度
-}
-//Start
-void start_task( void * pvParameters )
-{
-	taskENTER_CRITICAL();               /* 进入临界区 */
-	xTaskCreate(
-								 (TaskFunction_t				) 	task1,							
-								 (char *        				)		"task1",						
-								 (configSTACK_DEPTH_TYPE) 	TASK1_STACK_SIZE,	
-								 (void *								)		NULL,										
-								 (UBaseType_t						) 	TASK1_PRIO,				
-								 (TaskHandle_t *				)		&task1_handler			
-						 );
-	xTaskCreate(
-								 (TaskFunction_t				) 	task2,							
-								 (char *        				)		"task2",						
-								 (configSTACK_DEPTH_TYPE) 	TASK2_STACK_SIZE,	
-								 (void *								)		NULL,										
-								 (UBaseType_t						) 	TASK2_PRIO,			
-								 (TaskHandle_t *				)		&task2_handler			
-						 );
-	xTaskCreate(
-								 (TaskFunction_t				) 	task3,							
-								 (char *        				)		"task3",						
-								 (configSTACK_DEPTH_TYPE) 	TASK3_STACK_SIZE,	
-								 (void *								)		NULL,										
-								 (UBaseType_t						) 	TASK3_PRIO,				
-								 (TaskHandle_t *				)		&task3_handler			
-						 );
-								 
-	vTaskDelete(NULL);//创建完三个任务后，删除自己
-	taskEXIT_CRITICAL();                /* 退出临界区 */
-}
-//LED0
-void task1( void * pvParameters )
-{
-	uint32_t task1_num = 0;
+	struct Key_data	key_data;
+
 	while(1)
-	{
-		printf("task1 running, for %d times \r\n ", ++task1_num);
-		LED0_TOGGLE();
-		vTaskDelay(500);
-	}
-}
-//LED1
-void task2( void * pvParameters )
-{
-	uint32_t task2_num = 0;
-	while(1)
-	{
-		printf("task2 running, for %d times.\r\n ", ++task2_num);
-		LED1_TOGGLE();
-		vTaskDelay(500);
-	}
-}
-//KEY0
-void task3( void * pvParameters )
-{
-    uint8_t key = 0;
-    while(1)
-    {
-			//printf("task3 running...\r\n ");
-			key = KEY_Scan(0);
-			if(key == KEY0_PRES)
+	{	
+		/* 读按键中断队列 */
+		if(clock_flag == 0)
+		{
+			xQueueReceive(g_xQueueMenu, &key_data, portMAX_DELAY);
+		}
+
+		if(key_data.ldata == 1) 								//为了保证画面与按键方向一直，所以这里是反过来的
+		{
+			seclect_flag = (seclect_flag + 1) % 7;
+			update_select_border(seclect_flag);
+			key_data.ldata = 0;
+		}
+
+		if(key_data.rdata == 1)									//为了保证画面与按键方向一直，所以这里是反过来的
+		{
+			seclect_flag = (seclect_flag + 6) % 7;
+			update_select_border(seclect_flag);
+			key_data.rdata = 0;
+		}
+		if(key_data.updata == 1)
+		{
+			if(seclect_flag == 6)
 			{
-				vTaskSuspend(task1_handler);//挂起task1
-				printf("在task3中挂起task1.\r\n ");
+				/*启动定时器*/
+				if(g_Clock_Timer_handler != NULL)
+				{
+					total_seconds_set = g_clock_num[5]*36000 + g_clock_num[4]*3600 + g_clock_num[3]*600 + g_clock_num[2]*60 + g_clock_num[1]*10 + g_clock_num[0];
+					xTimerStart(g_Clock_Timer_handler, 0);
+					clock_flag = 1;
+					key_data.updata = 0;
+				}
 			}
-//			else if (key == KEY1_PRES)
-//			{
-//				vTaskResume(task1_handler);//恢复task1
-//				printf("在task3中恢复task1.\r\n");
-//			}
-			vTaskDelay(10);
-    }
+			else
+			{
+				g_clock_num[seclect_flag]++;
+				if(g_clock_num[seclect_flag]>9)	g_clock_num[seclect_flag]=0;	
+				update_clock_digits(seclect_flag);		//更新SET值
+				total_seconds_set = g_clock_num[5]*36000 + g_clock_num[4]*3600 + g_clock_num[3]*600 + g_clock_num[2]*60 + g_clock_num[1]*10 + g_clock_num[0];
+				key_data.updata = 0;
+			}
+		}
+		if(key_data.exdata == 1)
+		{
+			if(scr_menu == NULL) scr_menu = create_menu_screen();
+			lv_scr_load(scr_menu);									//显示菜单	
+			delete_clock_screen();									//删除自己，节省内存
+			vTaskResume(MenuTask_handler);
+			vTaskSuspend(NULL);
+			key_data.exdata = 0;
+		}
+		//判断定时结束
+		if((clock_flag == 1) && (clock_second == total_seconds_set))
+		{
+			//定时到，开灯
+			LED1(1);
+			vTaskDelay(1000);
+			LED1(0);
+			clock_flag = 0;
+			//关闭定时器
+			xTimerStop(g_Clock_Timer_handler, 0);
+			csec_unit 		= 0;
+			csec_decade 	= 0;
+			cmin_unit 		= 0;
+			cmin_decade	 	= 0;
+			chour_unit 		= 0;
+			chour_decade	= 0;
+			clock_second 	= 0;
+		}
+	}
+}
+//闹钟定时器回调
+void ClockTimerCallBackFun(TimerHandle_t xTimer)
+{  
+	clock_second++;		
+	//显示
+	csec_unit++;		
+	if(csec_unit>9)		{csec_unit 		= 0; csec_decade++;	}
+	if(csec_decade>5)	{csec_decade 	= 0; cmin_unit++;		}
+	if(cmin_unit>9)		{cmin_unit 		= 0; cmin_decade++;	}
+	if(cmin_decade>5)	{cmin_decade 	= 0; chour_unit++;	}
+	if(chour_unit>5)	{chour_unit 	= 0; chour_decade++;}
+	
+	if( clock_second <= total_seconds_set )
+		ret_set_time(chour_decade, chour_unit, cmin_decade, cmin_unit, csec_decade, csec_unit);
+	else
+		ret_set_time(0, 0, 0, 0, 0, 0);
 }
 

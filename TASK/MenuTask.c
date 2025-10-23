@@ -13,6 +13,7 @@ extern TaskHandle_t 	HumitureTask_handler;		//温湿度任务
 extern lv_obj_t *scr_menu;		//菜单任务屏幕
 extern lv_obj_t *scr_time;		//时间任务屏幕
 extern lv_obj_t *scr_calendar;//日历任务屏幕
+extern lv_obj_t *scr_clock;		//闹钟任务屏幕
 void MenuTask(void *params)
 {	
 	Key_data	key_data;
@@ -39,7 +40,7 @@ void MenuTask(void *params)
 			key_data.ldata = 0;
 		}
 		/* ststus machine : task scheduling  */
-		else if(key_data.exdata == 1)
+		else if(key_data.updata == 1)
 		{
 			switch(order[2])
 			{
@@ -54,6 +55,11 @@ void MenuTask(void *params)
 					key_data.exdata = 0;
 					break;
 				case 3://闹钟
+					if(scr_clock == NULL) scr_clock = create_clock_screen();
+					lv_scr_load(scr_clock);  //显示
+					vTaskResume(ClockTask_handler);
+					vTaskSuspend(NULL);
+					key_data.exdata = 0;
 					break;
 				case 4://温湿度
 					break;
@@ -63,7 +69,7 @@ void MenuTask(void *params)
 					break;
 			}
 		}
-		else if(key_data.updata == 1)
+		else if(key_data.exdata == 1)
 		{
 			if(scr_time == NULL) scr_time = create_time_screen();
 			lv_scr_load(scr_time);  //显示
