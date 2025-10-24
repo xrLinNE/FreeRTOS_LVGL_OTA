@@ -8,12 +8,13 @@ extern TaskHandle_t 	SettingsTask_handler;		//设置任务
 extern TaskHandle_t 	ClockTask_handler;			//闹钟任务
 extern TaskHandle_t 	CalendarTask_handler;		//日历任务
 extern TaskHandle_t 	FlashlightTask_handler;	//手电筒任务
-extern TaskHandle_t 	HumitureTask_handler;		//温湿度任务
+extern TaskHandle_t 	Dht11Task_handler;			//温湿度任务
 //屏幕
 extern lv_obj_t *scr_menu;		//菜单任务屏幕
 extern lv_obj_t *scr_time;		//时间任务屏幕
 extern lv_obj_t *scr_calendar;//日历任务屏幕
 extern lv_obj_t *scr_clock;		//闹钟任务屏幕
+extern lv_obj_t *scr_dht11;	//闹钟任务屏幕
 void MenuTask(void *params)
 {	
 	Key_data	key_data;
@@ -29,14 +30,12 @@ void MenuTask(void *params)
 			menu_switch_right();
 			update_dots();
 			key_data.rdata = 0;
-			key_data.ldata = 0;	
 		}
 		else if(key_data.ldata == 1)
 		{
 
 			menu_switch_left();
 			update_dots();
-			key_data.rdata = 0;
 			key_data.ldata = 0;
 		}
 		/* ststus machine : task scheduling  */
@@ -52,16 +51,21 @@ void MenuTask(void *params)
 					//lv_scr_load_anim(scr_calendar, LV_SCR_LOAD_ANIM_FADE_IN, 400, 10, false);//带动画切换，后删除自己节省内存
 					vTaskResume(CalendarTask_handler);
 					vTaskSuspend(NULL);
-					key_data.exdata = 0;
+					key_data.updata = 0;
 					break;
 				case 3://闹钟
 					if(scr_clock == NULL) scr_clock = create_clock_screen();
 					lv_scr_load(scr_clock);  //显示
 					vTaskResume(ClockTask_handler);
 					vTaskSuspend(NULL);
-					key_data.exdata = 0;
+					key_data.updata = 0;
 					break;
 				case 4://温湿度
+					if(scr_dht11 == NULL) scr_dht11 = create_dht11_screen();
+					lv_scr_load(scr_dht11);  //显示
+					vTaskResume(Dht11Task_handler);
+					vTaskSuspend(NULL);
+					key_data.updata = 0;
 					break;
 				case 5://设置 
 					break;
@@ -76,7 +80,7 @@ void MenuTask(void *params)
 			//菜单屏幕不删除，需要保留上一次的位置
 			vTaskResume(TimeTask_handler);
 			vTaskSuspend(NULL);
-			key_data.updata = 0;
+			key_data.exdata = 0;
 		}
 //		UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
 //		printf("MenuTask 堆栈剩余: %lu 字 \r\n", uxHighWaterMark);

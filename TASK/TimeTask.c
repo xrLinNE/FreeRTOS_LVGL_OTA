@@ -10,7 +10,7 @@ extern TaskHandle_t 	SettingsTask_handler;		//设置任务
 extern TaskHandle_t 	ClockTask_handler;			//闹钟任务
 extern TaskHandle_t 	CalendarTask_handler;		//日历任务
 extern TaskHandle_t 	FlashlightTask_handler;	//手电筒任务
-extern TaskHandle_t 	HumitureTask_handler;		//温湿度任务
+extern TaskHandle_t 	Dht11Task_handler;			//温湿度任务
 //屏幕
 extern lv_obj_t *scr_menu;//菜单任务屏幕
 extern lv_obj_t *scr_time;//时间任务屏幕
@@ -23,11 +23,9 @@ void TimeTask( void * pvParameters )
 	//挂起其他所有任务
 	vTaskSuspend(MenuTask_handler);
 	vTaskSuspend(CalendarTask_handler);
-//	vTaskSuspend(SettingsTask_handler);
 	vTaskSuspend(ClockTask_handler);
-//	vTaskSuspend(HumitureTask_handler);
-	//创建队列
-	g_xQueueMenu = xQueueCreate(1, 4);
+	vTaskSuspend(Dht11Task_handler);
+	//	vTaskSuspend(SettingsTask_handler);
 	if(pdPASS == xTimerStart(g_Timer_handler, 0)) printf("hello \r\n");//启动定时器
 	Key_data	key_data;
 	//屏幕初始化

@@ -7,6 +7,7 @@
 #define TIME_TASK_PRIO									3					//在时间显示任务中挂起其他所有任务，需要保证时间任务最先运行
 #define CALENDAR_TASK_PRIO							2
 #define CLOCK_TASK_PRIO									2
+#define DHT11_TASK_PRIO									2
 //任务堆栈
 //#define configTOTAL_HEAP_SIZE                           ((size_t)(10 * 1024))   /* FreeRTOS堆中可用的RAM总量, 单位: Byte, 无默认需定义 */
 #define START_TASK_STACK_SIZE						64				//这里的单位是字，也就是128字，即128x4=512B 512字节
@@ -14,8 +15,9 @@
 #define LED_TASK_STACK_SIZE							128	
 #define MENU_TASK_STACK_SIZE						400	
 #define TIME_TASK_STACK_SIZE						400	
-#define CALENDAR_TASK_STACK_SIZE				128	
+#define CALENDAR_TASK_STACK_SIZE				256	
 #define CLOCK_TASK_STACK_SIZE						256	
+#define DHT11_TASK_STACK_SIZE						512	
 //任务句柄
 TaskHandle_t 	start_task_handler;		//开始任务
 TaskHandle_t 	lvgl_heart_handler;		//lvgl心跳任务
@@ -24,13 +26,12 @@ TaskHandle_t 	MenuTask_handler;			//菜单任务
 TaskHandle_t 	TimeTask_handler;			//时间任务
 TaskHandle_t 	CalendarTask_handler;	//日历任务
 TaskHandle_t 	ClockTask_handler;		//闹钟任务
+TaskHandle_t 	Dht11Task_handler;		//温湿度任务
 
 TimerHandle_t g_Timer_handler;			//时间定时器句柄
-TimerHandle_t g_Clock_Timer_handler;//闹钟定时器句柄
+
 //变量
 //lv_ui 				guider_ui;//gui_guider.h 中使用到了 extern lv_ui guider_ui;
-//队列
-QueueHandle_t g_xQueueMenu;						//传递按键数据	
 //任务函数
 void start_task( void * pvParameters );
 void lvgl_heart_task( void * pvParameters );
@@ -40,11 +41,8 @@ extern void MenuTask(void *params);
 extern void TimeTask(void *params);
 extern void CalendarTask(void *params);
 extern void ClockTask(void *params);
+extern void Dht11Task(void *params);
 extern void TimerCallBackFun( TimerHandle_t pxTimer );
-extern void ClockTimerCallBackFun( TimerHandle_t pxTimer );
-//屏幕
-extern lv_obj_t *scr_menu;//菜单任务屏幕
-extern lv_obj_t *scr_time;//时间任务屏幕
 
 //钩子函数
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
@@ -69,8 +67,6 @@ void start_task( void * pvParameters )
 	taskENTER_CRITICAL();               /* 进入临界区 */
 	//定时器1  显示时间用
 	g_Timer_handler = xTimerCreate("timer1", 1000, pdTRUE, (void *)1, TimerCallBackFun);						//周期定时器
-	//定时器2  闹钟用
-	g_Clock_Timer_handler = xTimerCreate("timer2", 1000, pdTRUE, (void *)2, ClockTimerCallBackFun);//周期定时器
 //LVGL心跳任务
 	xTaskCreate(
 								 (TaskFunction_t				) 	lvgl_heart_task,							
@@ -116,6 +112,15 @@ void start_task( void * pvParameters )
 								 (UBaseType_t						) 	CLOCK_TASK_PRIO,				
 								 (TaskHandle_t *				)		&ClockTask_handler			
 						 ) != pdPASS)	printf("Create Clock task failed!\r\n");
+//温湿度任务
+	if(xTaskCreate(
+								 (TaskFunction_t				) 	Dht11Task,							
+								 (char *        				)		"Dht11Task",						
+								 (configSTACK_DEPTH_TYPE) 	DHT11_TASK_STACK_SIZE,	
+								 (void *								)		NULL,										
+								 (UBaseType_t						) 	DHT11_TASK_PRIO,				
+								 (TaskHandle_t *				)		&Dht11Task_handler			
+						 ) != pdPASS)	printf("Create Dht11 task failed!\r\n");
 //LED任务表示系统在运行
 	xTaskCreate(
 								 (TaskFunction_t				) 	led_task,							
@@ -128,50 +133,9 @@ void start_task( void * pvParameters )
 	vTaskDelete(NULL);									//创建完三个任务后，删除自己
 	taskEXIT_CRITICAL();                /* 退出临界区 */
 }
-static void anim_x_cb(void * var, int32_t v)
-{
-    lv_obj_set_x(var, v);
-}
-
-static void anim_size_cb(void * var, int32_t v)
-{
-    lv_obj_set_size(var, v, v);
-}
-
-/**
- * Create a playback animation
- */
-void lv_example_anim_2(void)
-{
-
-    lv_obj_t * obj = lv_obj_create(lv_scr_act());
-    lv_obj_set_style_bg_color(obj, lv_palette_main(LV_PALETTE_RED), 0);
-    lv_obj_set_style_radius(obj, LV_RADIUS_CIRCLE, 0);
-
-    lv_obj_align(obj, LV_ALIGN_LEFT_MID, 10, 0);
-
-    lv_anim_t a;
-    lv_anim_init(&a);
-    lv_anim_set_var(&a, obj);
-    lv_anim_set_values(&a, 10, 50);
-    lv_anim_set_time(&a, 1000);
-    lv_anim_set_playback_delay(&a, 100);
-    lv_anim_set_playback_time(&a, 300);
-    lv_anim_set_repeat_delay(&a, 500);
-    lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE);
-    lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
-
-    lv_anim_set_exec_cb(&a, anim_size_cb);
-    lv_anim_start(&a);
-    lv_anim_set_exec_cb(&a, anim_x_cb);
-    lv_anim_set_values(&a, 10, 240);
-    lv_anim_start(&a);
-}
 
 void lvgl_heart_task( void * pvParameters )
 {
-//	lv_demo_benchmark();
-	//lv_example_anim_2();
 	while(1)
 	{
 		lv_timer_handler();

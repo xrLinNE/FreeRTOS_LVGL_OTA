@@ -5,6 +5,7 @@
 #include "task.h"
 #include "led.h"
 #include "key.h"
+#include "ClockScreen.h"
 
 void ClockTask( void * pvParameters );
 

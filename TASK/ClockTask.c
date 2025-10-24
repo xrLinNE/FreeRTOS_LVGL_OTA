@@ -5,10 +5,7 @@ extern 	QueueHandle_t g_xQueueMenu;
 extern 	TaskHandle_t MenuTask_handler;			//菜单任务
 //屏幕
 extern 	lv_obj_t *scr_menu;									//菜单任务屏幕
-//对象
-extern 	lv_obj_t *calendar;   							//日历对象 
 //外部变量
-extern	TimerHandle_t g_Clock_Timer_handler;//闹钟定时器句柄
 extern	int8_t seclect_flag;
 extern 	uint8_t g_clock_num[6];
 uint16_t 	clock_second = 0;
@@ -16,11 +13,29 @@ uint32_t 	total_seconds_set = 0;
 uint8_t 	clock_flag = 0;
 //clock定时时间流逝显示
 uint8_t csec_unit, csec_decade, cmin_unit, cmin_decade, chour_unit, chour_decade;
-
+TimerHandle_t g_Clock_Timer_handler;//闹钟定时器句柄
+//闹钟定时器回调
+void ClockTimerCallBackFun(TimerHandle_t xTimer)
+{  
+	clock_second++;		
+	//显示
+	csec_unit++;		
+	if(csec_unit>9)		{csec_unit 		= 0; csec_decade++;	}
+	if(csec_decade>5)	{csec_decade 	= 0; cmin_unit++;		}
+	if(cmin_unit>9)		{cmin_unit 		= 0; cmin_decade++;	}
+	if(cmin_decade>5)	{cmin_decade 	= 0; chour_unit++;	}
+	if(chour_unit>5)	{chour_unit 	= 0; chour_decade++;}
+	
+	if( clock_second <= total_seconds_set )
+		ret_set_time(chour_decade, chour_unit, cmin_decade, cmin_unit, csec_decade, csec_unit);
+	else
+		ret_set_time(0, 0, 0, 0, 0, 0);
+}
 void ClockTask( void * pvParameters )
 {
 	struct Key_data	key_data;
-
+	//定时器2  闹钟用
+	g_Clock_Timer_handler = xTimerCreate("timer2", 1000, pdTRUE, (void *)2, ClockTimerCallBackFun);//周期定时器
 	while(1)
 	{	
 		/* 读按键中断队列 */
@@ -93,21 +108,5 @@ void ClockTask( void * pvParameters )
 		}
 	}
 }
-//闹钟定时器回调
-void ClockTimerCallBackFun(TimerHandle_t xTimer)
-{  
-	clock_second++;		
-	//显示
-	csec_unit++;		
-	if(csec_unit>9)		{csec_unit 		= 0; csec_decade++;	}
-	if(csec_decade>5)	{csec_decade 	= 0; cmin_unit++;		}
-	if(cmin_unit>9)		{cmin_unit 		= 0; cmin_decade++;	}
-	if(cmin_decade>5)	{cmin_decade 	= 0; chour_unit++;	}
-	if(chour_unit>5)	{chour_unit 	= 0; chour_decade++;}
-	
-	if( clock_second <= total_seconds_set )
-		ret_set_time(chour_decade, chour_unit, cmin_decade, cmin_unit, csec_decade, csec_unit);
-	else
-		ret_set_time(0, 0, 0, 0, 0, 0);
-}
+
 
