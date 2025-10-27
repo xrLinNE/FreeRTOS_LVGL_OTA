@@ -26,6 +26,7 @@
 #define KEY3_PRES 	3
 #define KEY4_PRES		4
 
+#define KEY_READ(pin) ((KEY_GPIO_PORT->IDR & (1<<pin)) ? 1 : 0)
 //按键数据结构
 typedef struct Key_data{
 	uint8_t rdata;				

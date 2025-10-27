@@ -1,7 +1,7 @@
 #include "FreeRTOS_task.h"
 //任务优先级
 #define START_TASK_PRIO									1		
-#define LVGL_HEART_TASK_PRIO						4		
+#define LVGL_HEART_TASK_PRIO						4	
 #define LED_TASK_PRIO										2	
 #define MENU_TASK_PRIO									2
 #define TIME_TASK_PRIO									3					//在时间显示任务中挂起其他所有任务，需要保证时间任务最先运行
@@ -13,11 +13,11 @@
 #define START_TASK_STACK_SIZE						64				//这里的单位是字，也就是128字，即128x4=512B 512字节
 #define LVGL_HEART_TASK_STACK_SIZE			512	
 #define LED_TASK_STACK_SIZE							128	
-#define MENU_TASK_STACK_SIZE						400	
-#define TIME_TASK_STACK_SIZE						400	
+#define MENU_TASK_STACK_SIZE						256	
+#define TIME_TASK_STACK_SIZE						512	
 #define CALENDAR_TASK_STACK_SIZE				256	
-#define CLOCK_TASK_STACK_SIZE						256	
-#define DHT11_TASK_STACK_SIZE						512	
+#define CLOCK_TASK_STACK_SIZE						350	
+#define DHT11_TASK_STACK_SIZE						400	
 //任务句柄
 TaskHandle_t 	start_task_handler;		//开始任务
 TaskHandle_t 	lvgl_heart_handler;		//lvgl心跳任务
@@ -27,7 +27,6 @@ TaskHandle_t 	TimeTask_handler;			//时间任务
 TaskHandle_t 	CalendarTask_handler;	//日历任务
 TaskHandle_t 	ClockTask_handler;		//闹钟任务
 TaskHandle_t 	Dht11Task_handler;		//温湿度任务
-
 TimerHandle_t g_Timer_handler;			//时间定时器句柄
 
 //变量
@@ -46,7 +45,7 @@ extern void TimerCallBackFun( TimerHandle_t pxTimer );
 
 //钩子函数
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
-    printf("卡死: 任务 %s \r\n", pcTaskName);
+    printf("BAD!!!: task %s \r\n", pcTaskName);
 }
 
 void FreeRTOS_task(void)

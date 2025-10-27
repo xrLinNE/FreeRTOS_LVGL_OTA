@@ -55,6 +55,8 @@ void CalendarTask( void * pvParameters )
 			vTaskSuspend(NULL);
 			key_data.exdata = 0;
 		}
+//		UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+//		printf("CalendarTask Remaining stack: %lu Byte \r\n", uxHighWaterMark);
 	}
 }
 

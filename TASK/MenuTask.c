@@ -83,7 +83,7 @@ void MenuTask(void *params)
 			key_data.exdata = 0;
 		}
 //		UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
-//		printf("MenuTask 堆栈剩余: %lu 字 \r\n", uxHighWaterMark);
+//		printf("MenuTask Remaining stack: %lu Byte \r\n", uxHighWaterMark);
 	}
 }
 

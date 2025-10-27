@@ -52,7 +52,7 @@ void TimeTask( void * pvParameters )
 			}
 		}
 //		UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
-//		printf("TimeTask 堆栈剩余: %lu 字 \r\n", uxHighWaterMark);
+//		printf("TimeTask Remaining stack: %lu Byte \r\n", uxHighWaterMark);
 	}
 }
 //时间定时器回调

@@ -106,6 +106,8 @@ void ClockTask( void * pvParameters )
 			chour_decade	= 0;
 			clock_second 	= 0;
 		}
+//		UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+//		printf("ClockTask Remaining stack: %lu Byte \r\n", uxHighWaterMark);
 	}
 }
 

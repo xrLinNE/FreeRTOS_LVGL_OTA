@@ -44,6 +44,8 @@ void Dht11Task( void * pvParameters )
 			vTaskSuspend(NULL);
 			key_data.exdata = 0;
 		}
+//		UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+//		printf("Dht11Task Remaining stack: %lu Byte \r\n", uxHighWaterMark);
 	}
 }
 
