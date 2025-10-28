@@ -66,7 +66,7 @@ void start_task( void * pvParameters )
 	taskENTER_CRITICAL();               /* 进入临界区 */
 	//定时器1  显示时间用
 	g_Timer_handler = xTimerCreate("timer1", 1000, pdTRUE, (void *)1, TimerCallBackFun);						//周期定时器
-//LVGL心跳任务
+////LVGL心跳任务
 	xTaskCreate(
 								 (TaskFunction_t				) 	lvgl_heart_task,							
 								 (char *        				)		"lvgl_heart_task",						
@@ -145,6 +145,18 @@ void led_task( void * pvParameters )
 {
 	while(1)
 	{
+//		if(U1_CB.URxDataOUT != U1_CB.URxDataIN)//缓冲区有数据
+//		{
+//			printf("hello !\r\n");
+//			printf("Get %d Byte : \r\n", (U1_CB.URxDataOUT->end - U1_CB.URxDataOUT->start + 1));
+//			for(int i = 0; i < (U1_CB.URxDataOUT->end - U1_CB.URxDataOUT->start + 1); i++)  printf("%c",U1_CB.URxDataOUT->start[i]);
+//			printf("\r\n");
+//			U1_CB.URxDataOUT++;																									
+//			if(U1_CB.URxDataOUT == U1_CB.URxDataEND)
+//			{
+//				U1_CB.URxDataOUT = &U1_CB.URxDataPtr[0];															 	
+//			}			
+//		}
 //		UBaseType_t task_count = uxTaskGetNumberOfTasks();
 //    TaskStatus_t *task_status = pvPortMalloc(task_count * sizeof(TaskStatus_t));
 //    if(task_status == NULL) return;
@@ -157,8 +169,8 @@ void led_task( void * pvParameters )
 //               task_status[i].pcTaskName,
 //               task_status[i].eCurrentState,
 //               (unsigned int)task_status[i].uxCurrentPriority,
-//               task_status[i].usStackHighWaterMark);
-//    }
+////               task_status[i].usStackHighWaterMark);
+////    }
 
 //    vPortFree(task_status);
 		LED0_TOGGLE();

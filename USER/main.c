@@ -19,9 +19,9 @@ int main(void)
 	//创建队列
 	g_xQueueMenu = xQueueCreate(1, 4);
 	/*系统初始化*/
-	delay_init(168);		 													 	//初始化延时函数
-	uart_init(115200);															//串口
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);	//设置NVIC中断配置分组，为了适配FreeRTOS中断管理，4bit表示抢占，0bit表示响应
+	delay_init(168);		 													 	//初始化延时函数
+	uart_init(921600);															//串口
 	/* 硬件驱动初始化 */
 	LED_Init();		        													//初始化LED端口
 	EXTIX_Init();																		//按键和外部中断初始化
@@ -31,6 +31,7 @@ int main(void)
 	lv_port_disp_init();                  					// 注册LVGL的显示任务
 	TIM3_Int_Init(9,8399);							 						//1ms定时,为LVGL提供时间基础
 	delay_xms(50);																	//延迟一会
+	printf("Ready in FreeRTOS!!! \r\n");
 	/* 进入FreeRTOS */
 	FreeRTOS_task();	//创建各个任务并开启任务调度
 	while(1)

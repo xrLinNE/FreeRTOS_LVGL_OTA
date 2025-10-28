@@ -54,7 +54,7 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
  *   GLOBAL FUNCTIONS
  **********************/
 #define	SINGLE_BUFF	0
-#define	BUFF_ROWS	60
+#define	BUFF_ROWS	40
  #if SINGLE_BUFF
  //单缓冲
 static lv_disp_draw_buf_t draw_buf_dsc_1;

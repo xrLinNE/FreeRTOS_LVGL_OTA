@@ -36,7 +36,7 @@ void MYDMA_Config(DMA_Stream_TypeDef *DMA_Streamx,u32 chx,u32 par,u32 mar,u16 nd
   DMA_InitStructure.DMA_Channel = chx;  //通道选择
   DMA_InitStructure.DMA_PeripheralBaseAddr = par;//DMA外设地址
   DMA_InitStructure.DMA_Memory0BaseAddr = mar;//DMA 存储器0地址
-  DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;//存储器到外设模式
+  DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;//存储器到外设模式
   DMA_InitStructure.DMA_BufferSize = ndtr;//数据传输量 
   DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;//外设非增量模式
   DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;//存储器增量模式
